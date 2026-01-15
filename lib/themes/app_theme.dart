@@ -22,7 +22,7 @@ class AppTheme {
           border: Color(0xFF492239),
           muted: Color(0xFF85747E),
           success: Color(0xFF4CAF50),
-          onSuccess: Color(0xFFFFFFFF),
+          onSuccess: Color(0xFF000000),
           warning: Color(0xFFFFC107),
           onWarning: Color(0xFF000000),
           error: Color(0xFFF44336),
