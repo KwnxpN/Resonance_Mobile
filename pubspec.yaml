@@ -9,6 +9,8 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  
+  audio_video_progress_bar: ^2.0.3
 
 dev_dependencies:
   flutter_test:

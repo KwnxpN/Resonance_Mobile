@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../themes/app_colors.dart';
 import '../themes/app_gradients.dart';
 import '../themes/app_text_styles.dart';
+import '../screens/music_playback_screen.dart';
 
 class ThemePreviewPage extends StatelessWidget {
   const ThemePreviewPage({super.key});
@@ -142,7 +143,14 @@ class ThemePreviewPage extends StatelessWidget {
             borderRadius: BorderRadius.circular(32),
           ),
           child: ElevatedButton(
-            onPressed: () {},
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute<void>(
+                  builder: (context) => const MusicPlaybackScreen(),
+                ),
+              );
+            },
             style: ElevatedButton.styleFrom(
               backgroundColor: Colors.transparent,
               shadowColor: Colors.transparent,
