@@ -5,6 +5,7 @@ import '../themes/app_colors.dart';
 import '../themes/app_text_styles.dart';
 import '../widgets/artwork_image.dart';
 import '../core/di/service_locator.dart';
+import 'dart:async';
 
 class MusicPlaybackScreen extends StatefulWidget {
   const MusicPlaybackScreen({super.key});
@@ -19,6 +20,7 @@ class _MusicPlaybackScreenState extends State<MusicPlaybackScreen> {
   String _imageURL = '';
   final _player = AudioPlayer();
   bool _isLoading = false;
+  StreamSubscription<PlayerState>? _playerStateSubscription;
 
   List<dynamic> _trackList = [];
   int _currentIndex = 0;
@@ -27,6 +29,7 @@ class _MusicPlaybackScreenState extends State<MusicPlaybackScreen> {
   void initState() {
     super.initState();
     _loadTracks();
+    _setupPlayerListener();
   }
 
   Future<void> _loadTracks() async {
@@ -86,6 +89,10 @@ class _MusicPlaybackScreenState extends State<MusicPlaybackScreen> {
 
       await _player.setUrl(audioUrl);
       await _player.play();
+
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
     } catch (e) {
       debugPrint('Failed to play track: $e');
 
@@ -96,16 +103,32 @@ class _MusicPlaybackScreenState extends State<MusicPlaybackScreen> {
         _artistName = '';
         _imageURL = '';
       });
-    } finally {
-      if (mounted) {
-        setState(() => _isLoading = false);
-      }
     }
+  }
+
+  void _setupPlayerListener() {
+    _player.playerStateStream.listen((playerState) {
+      if (playerState.processingState == ProcessingState.completed) {
+        _playNext();
+      }
+    });
+
+    // Listen for ready state to hide loading
+    _playerStateSubscription = _player.playerStateStream.listen((playerState) {
+      if (playerState.processingState == ProcessingState.ready &&
+          playerState.playing) {
+        if (mounted) {
+          setState(() => _isLoading = false);
+        }
+      }
+    });
   }
 
   void _playNext() {
     if (_currentIndex < _trackList.length - 1) {
       _playTrackAtIndex(_currentIndex + 1);
+    } else {
+      _playTrackAtIndex(0);
     }
   }
 
@@ -117,6 +140,7 @@ class _MusicPlaybackScreenState extends State<MusicPlaybackScreen> {
 
   @override
   void dispose() {
+    _playerStateSubscription?.cancel();
     _player.dispose();
     super.dispose();
   }
