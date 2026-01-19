@@ -14,6 +14,8 @@ dependencies:
   youtube_explode_dart: ^2.3.4
   dio: ^5.9.0
 
+  dio: ^5.9.0
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
