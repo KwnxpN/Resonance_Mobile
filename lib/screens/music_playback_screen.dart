@@ -12,6 +12,9 @@ class MusicPlaybackScreen extends StatefulWidget {
 }
 
 class _MusicPlaybackScreenState extends State<MusicPlaybackScreen> {
+  String _songTitle = 'Song Title';
+  String _artistName = 'Artist Name';
+
   @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).extension<AppColors>()!;
