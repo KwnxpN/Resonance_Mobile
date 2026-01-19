@@ -1,0 +1,20 @@
+import 'package:dio/dio.dart';
+import '../../../core/network/dio_client.dart';
+
+class MusicApiService {
+  final Dio _dio;
+
+  MusicApiService(DioClient client) : _dio = client.dio;
+
+  Future<Response> fetchTracks() {
+    return _dio.get('/tracks');
+  }
+
+  Future<Response> fetchTrackById(String id) {
+    return _dio.get('/tracks/$id');
+  }
+
+  Future<Response> createUser(Map<String, dynamic> payload) {
+    return _dio.post('/users', data: payload);
+  }
+}
