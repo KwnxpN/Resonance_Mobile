@@ -10,11 +10,11 @@ class MusicApiService {
     return _dio.get('/tracks');
   }
 
-  Future<Response> fetchTrackById(String id) {
-    return _dio.get('/tracks/$id');
+  Future<Response> fetchRandomTracks() {
+    return _dio.get('/tracks/random');
   }
 
-  Future<Response> createUser(Map<String, dynamic> payload) {
-    return _dio.post('/users', data: payload);
+  Future<Response> fetchTrackById(String id) {
+    return _dio.get('/tracks/$id');
   }
 }

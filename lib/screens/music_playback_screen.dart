@@ -1,8 +1,10 @@
 import 'package:audio_video_progress_bar/audio_video_progress_bar.dart';
 import 'package:flutter/material.dart';
+import 'package:just_audio/just_audio.dart';
 import '../themes/app_colors.dart';
 import '../themes/app_text_styles.dart';
 import '../widgets/artwork_image.dart';
+import '../core/di/service_locator.dart';
 
 class MusicPlaybackScreen extends StatefulWidget {
   const MusicPlaybackScreen({super.key});
@@ -12,8 +14,112 @@ class MusicPlaybackScreen extends StatefulWidget {
 }
 
 class _MusicPlaybackScreenState extends State<MusicPlaybackScreen> {
-  String _songTitle = 'Song Title';
+  String _songName = 'Song Title';
   String _artistName = 'Artist Name';
+  String _imageURL = '';
+  final _player = AudioPlayer();
+  bool _isLoading = false;
+
+  List<dynamic> _trackList = [];
+  int _currentIndex = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadTracks();
+  }
+
+  Future<void> _loadTracks() async {
+    setState(() => _isLoading = true);
+
+    try {
+      final trackList = await ServiceLocator.musicRepository.getRandomTracks();
+
+      if (!mounted || trackList.isEmpty) return;
+
+      setState(() {
+        _trackList = trackList;
+        _currentIndex = 0;
+      });
+
+      await _playTrackAtIndex(0);
+    } catch (e, stackTrace) {
+      debugPrint('Failed to load tracks: $e');
+      debugPrintStack(stackTrace: stackTrace);
+
+      if (!mounted) return;
+
+      setState(() {
+        _isLoading = false;
+        _songName = 'Error loading songs';
+        _artistName = '';
+        _imageURL = '';
+      });
+    }
+  }
+
+  Future<void> _playTrackAtIndex(int index) async {
+    if (index < 0 || index >= _trackList.length) return;
+
+    setState(() {
+      _isLoading = true;
+      _currentIndex = index;
+    });
+
+    try {
+      final track = _trackList[index];
+
+      setState(() {
+        _songName = track.name;
+        _artistName = track.artists.first;
+        _imageURL = track.imageUrl;
+      });
+
+      final audioUrl = await ServiceLocator.jamendoService.findTrackAudio(
+        track.name,
+        track.artists.first,
+      );
+
+      if (audioUrl == null) {
+        throw Exception('No audio found on Jamendo');
+      }
+
+      await _player.setUrl(audioUrl);
+      await _player.play();
+    } catch (e) {
+      debugPrint('Failed to play track: $e');
+
+      if (!mounted) return;
+
+      setState(() {
+        _songName = 'Error loading song';
+        _artistName = '';
+        _imageURL = '';
+      });
+    } finally {
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
+    }
+  }
+
+  void _playNext() {
+    if (_currentIndex < _trackList.length - 1) {
+      _playTrackAtIndex(_currentIndex + 1);
+    }
+  }
+
+  void _playPrevious() {
+    if (_currentIndex > 0) {
+      _playTrackAtIndex(_currentIndex - 1);
+    }
+  }
+
+  @override
+  void dispose() {
+    _player.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -26,6 +132,7 @@ class _MusicPlaybackScreenState extends State<MusicPlaybackScreen> {
           padding: const EdgeInsets.symmetric(horizontal: 8),
           child: Column(
             children: [
+              if (_isLoading) const LinearProgressIndicator(),
               // Header with close and more options buttons
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -85,8 +192,7 @@ class _MusicPlaybackScreenState extends State<MusicPlaybackScreen> {
                   child: Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 12),
                     child: ArtworkImage(
-                      imageUrl:
-                          'https://lh3.googleusercontent.com/aida-public/AB6AXuC2QC8Wz7IX96K0iDdGouOsx-7HvVoht5QG2p7PX3FVFo7XLvZsJCfqYMhI0xRM1XX2NNEoM_4EmpQOSBnITLKbn6Dp6N31vqFDP_DS6a3q9mytsJUQZXICfuYlfj4QQjypr4fQN8JbfgfOnlxXlQ3WaP2IwgSxIllLTdpHcpJHsyNaIoSVbMIvHu5c0l7Ux3Yd1ihOgeyQGQ6oZW0HTvSOlIvUGEm7XpAR3-cBy0ykqtbj7wVrJBaE5I9xrpSwaXsD4yj2Tu6fV3-Q',
+                      imageUrl: _imageURL.isNotEmpty ? _imageURL : null,
                     ),
                   ),
                 ),
@@ -104,24 +210,30 @@ class _MusicPlaybackScreenState extends State<MusicPlaybackScreen> {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          // Song title and artist
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                'Song Title',
-                                style: AppTextStyles.textXl(context).copyWith(
-                                  color: colors.onBackground,
-                                  fontWeight: FontWeight.bold,
+                          Expanded(
+                            child: // Song title and artist
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  _songName,
+                                  style: AppTextStyles.textXl(context).copyWith(
+                                    color: colors.onBackground,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
                                 ),
-                              ),
-                              Text(
-                                'Artist Name',
-                                style: AppTextStyles.textMd(
-                                  context,
-                                ).copyWith(color: colors.muted),
-                              ),
-                            ],
+                                Text(
+                                  _artistName,
+                                  style: AppTextStyles.textMd(
+                                    context,
+                                  ).copyWith(color: colors.muted),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ],
+                            ),
                           ),
 
                           // Action buttons
@@ -158,16 +270,15 @@ class _MusicPlaybackScreenState extends State<MusicPlaybackScreen> {
                       const SizedBox(height: 24),
 
                       // Progress bar
-                      ProgressBar(
-                        progress: Duration(minutes: 0, seconds: 20),
-                        buffered: Duration(minutes: 1, seconds: 50),
-                        total: Duration(minutes: 5, seconds: 0),
-                        progressBarColor: colors.primary,
-                        bufferedBarColor: colors.onBackground,
-                        timeLabelTextStyle: AppTextStyles.textSm(
-                          context,
-                        ).copyWith(color: colors.muted),
-                        timeLabelPadding: 8,
+                      StreamBuilder<Duration>(
+                        stream: _player.positionStream,
+                        builder: (_, snapshot) {
+                          return ProgressBar(
+                            progress: snapshot.data ?? Duration.zero,
+                            total: _player.duration ?? Duration.zero,
+                            onSeek: _player.seek,
+                          );
+                        },
                       ),
 
                       const SizedBox(height: 24),
@@ -195,22 +306,30 @@ class _MusicPlaybackScreenState extends State<MusicPlaybackScreen> {
                               foregroundColor: colors.onBackground,
                               iconSize: 36,
                             ),
-                            onPressed: () {
-                              // Handle previous action
-                            },
+                            onPressed: _currentIndex > 0 ? _playPrevious : null,
                           ),
 
                           // Play/Pause
-                          IconButton(
-                            icon: const Icon(Icons.play_circle_fill),
-                            style: IconButton.styleFrom(
-                              foregroundColor: colors.onBackground,
-                              backgroundColor: colors.primary,
-                              iconSize: 56,
-                              padding: const EdgeInsets.all(16),
-                            ),
-                            onPressed: () {
-                              // Handle play/pause action
+                          StreamBuilder<PlayerState>(
+                            stream: _player.playerStateStream,
+                            builder: (context, snapshot) {
+                              final playing = snapshot.data?.playing ?? false;
+
+                              return IconButton(
+                                icon: Icon(
+                                  playing
+                                      ? Icons.pause_circle_filled
+                                      : Icons.play_circle_filled,
+                                ),
+                                style: IconButton.styleFrom(
+                                  foregroundColor: colors.onBackground,
+                                  backgroundColor: colors.primary,
+                                  iconSize: 64,
+                                ),
+                                onPressed: playing
+                                    ? _player.pause
+                                    : _player.play,
+                              );
                             },
                           ),
 
@@ -221,9 +340,9 @@ class _MusicPlaybackScreenState extends State<MusicPlaybackScreen> {
                               foregroundColor: colors.onBackground,
                               iconSize: 36,
                             ),
-                            onPressed: () {
-                              // Handle next action
-                            },
+                            onPressed: _currentIndex < _trackList.length - 1
+                                ? _playNext
+                                : null,
                           ),
 
                           // Repeat

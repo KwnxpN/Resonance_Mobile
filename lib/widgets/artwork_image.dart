@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 class ArtworkImage extends StatelessWidget {
-  final String imageUrl;
+  final String? imageUrl;
 
   const ArtworkImage({super.key, required this.imageUrl});
 
@@ -14,7 +14,7 @@ class ArtworkImage extends StatelessWidget {
         borderRadius: BorderRadius.circular(24),
         image: DecorationImage(
           image: NetworkImage(
-            imageUrl,
+            imageUrl ?? '',
           ),
           fit: BoxFit.cover,
         ),

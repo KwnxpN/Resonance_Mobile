@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import '../core/di/service_locator.dart';
 import './themes/app_theme.dart';
 import './widgets/theme_preview_page.dart';
+import './core/di/service_locator.dart';
 
 void main() {
   ServiceLocator.init();
@@ -9,7 +9,6 @@ void main() {
 }
 
 class MyApp extends StatelessWidget {
-  final tracks = ServiceLocator.musicRepository.getTracks();
   MyApp({super.key});
 
   @override

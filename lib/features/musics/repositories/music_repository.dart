@@ -15,4 +15,15 @@ class MusicRepository {
       throw Exception('Failed to load tracks');
     }
   }
+
+  Future<List<TrackModel>> getRandomTracks() async {
+    try {
+      final response = await apiService.fetchRandomTracks();
+      final data = response.data as List;
+
+      return data.map((e) => TrackModel.fromJson(e)).toList();
+    } catch (e) {
+      throw Exception('Failed to load tracks');
+    }
+  }
 }
