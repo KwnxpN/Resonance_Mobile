@@ -2,7 +2,7 @@ class Track {
   final String title;
   final String artist;
   final String image;
-  final List<String> tags;
+  final List<String> genre;
   final String description;
   final String duration;
 
@@ -10,7 +10,7 @@ class Track {
     required this.title,
     required this.artist,
     required this.image,
-    required this.tags,
+    required this.genre,
     required this.description,
     required this.duration,
   });
@@ -20,7 +20,7 @@ class Track {
       title: json['title'] ?? '',
       artist: json['artist'] ?? '',
       image: json['image'] ?? '',
-      tags: List<String>.from(json['tags'] ?? []),
+      genre: List<String>.from(json['genre'] ?? []),
       description: json['description'] ?? '',
       duration: json['duration'] ?? '',
     );

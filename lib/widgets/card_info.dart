@@ -23,9 +23,9 @@ class CardInfo extends StatelessWidget {
           const SizedBox(height: 10),
           Wrap(
             spacing: 8,
-            children: track.tags
-                .map((tag) => Chip(
-                      label: Text(tag),
+            children: track.genre
+                .map((genre) => Chip(
+                      label: Text(genre),
                       backgroundColor: Colors.white10,
                       labelStyle:
                           const TextStyle(color: Colors.white, fontSize: 12),

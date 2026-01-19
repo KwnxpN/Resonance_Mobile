@@ -6,8 +6,15 @@ import 'card_actions.dart';
 
 class SwipeCard extends StatelessWidget {
   final Track track;
+  final VoidCallback onLike;
+  final VoidCallback onDislike;
 
-  const SwipeCard({super.key, required this.track});
+  const SwipeCard({
+    super.key,
+    required this.track,
+    required this.onLike,
+    required this.onDislike,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -23,11 +30,12 @@ class SwipeCard extends StatelessWidget {
           ),
         ),
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             CardImage(track: track),
             CardInfo(track: track),
             const Spacer(),
-            const CardActions(),
+            CardActions(onLike: onLike, onDislike: onDislike),
             const SizedBox(height: 20),
           ],
         ),

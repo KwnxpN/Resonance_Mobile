@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import './themes/app_theme.dart';
 import './widgets/theme_preview_page.dart';
-import './screens/discover_screen.dart';
+import 'screens/music_taste_screen.dart';
 
 void main() {
   runApp(const MyApp());
@@ -15,7 +15,7 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       theme: AppTheme.dark(),
-      home:  DiscoverScreen(),
+      home:  MusicTasteScreen(),
     );
   }
 }
