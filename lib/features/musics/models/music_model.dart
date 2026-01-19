@@ -4,6 +4,7 @@ class TrackModel {
   final String imageUrl;
   final List artists;
   final List genres;
+  final String duration;
   // final DateTime releaseDate;
   // final DateTime createdAt;
   // final DateTime updatedAt;
@@ -14,6 +15,7 @@ class TrackModel {
     required this.imageUrl,
     required this.artists,
     required this.genres,
+    required this.duration,
     // required this.releaseDate,
     // required this.createdAt,
     // required this.updatedAt,
@@ -26,6 +28,7 @@ class TrackModel {
       imageUrl: json['image_url'] as String,
       artists: (json['artists'] as List),
       genres: (json['genres'] as List),
+      duration: json['duration'] as String,
       // releaseDate: DateTime.parse(json['release_date'] as String),
       // createdAt: DateTime.parse(json['created_at'] as String),
       // updatedAt: DateTime.parse(json['updated_at'] as String),
@@ -39,6 +42,7 @@ class TrackModel {
       'image_url': imageUrl,
       'artists': artists.map((artist) => artist.toJson()).toList(),
       'genres': genres.map((genre) => genre.toJson()).toList(),
+      'duration': duration,
       // 'release_date': releaseDate.toIso8601String(),
       // 'created_at': createdAt.toIso8601String(),
       // 'updated_at': updatedAt.toIso8601String(),

@@ -1,19 +1,30 @@
 import 'package:flutter/material.dart';
-import '../models/mock_data.dart';
+import '../features/musics/models/music_model.dart';
 import '../themes/app_colors.dart';
 import '../themes/app_text_styles.dart';
 
 class SongCard extends StatelessWidget {
-  final Song song;
+  final TrackModel track;
+  final bool isPlaying;
   final VoidCallback? onTap;
   final VoidCallback? onMoreTap;
 
-  const SongCard({super.key, required this.song, this.onTap, this.onMoreTap});
+  const SongCard({
+    super.key,
+    required this.track,
+    this.isPlaying = false,
+    this.onTap,
+    this.onMoreTap,
+  });
+
+  String get _artistsText {
+    if (track.artists.isEmpty) return 'Unknown Artist';
+    return track.artists.map((a) => a.toString()).join(', ');
+  }
 
   @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).extension<AppColors>()!;
-    final isPlaying = song.isPlaying;
 
     return Material(
       color: isPlaying
@@ -27,36 +38,46 @@ class SongCard extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
           child: Row(
             children: [
-              // Album art / icon
+              // Album art
               Container(
                 width: 48,
                 height: 48,
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(8),
-                  gradient: LinearGradient(
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                    colors: [
-                      colors.primary.withValues(alpha: 0.6),
-                      colors.surface,
-                    ],
-                  ),
+                  image: track.imageUrl.isNotEmpty
+                      ? DecorationImage(
+                          image: NetworkImage(track.imageUrl),
+                          fit: BoxFit.cover,
+                        )
+                      : null,
+                  gradient: track.imageUrl.isEmpty
+                      ? LinearGradient(
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                          colors: [
+                            colors.primary.withValues(alpha: 0.6),
+                            colors.surface,
+                          ],
+                        )
+                      : null,
                 ),
-                child: Icon(
-                  Icons.music_note_rounded,
-                  color: colors.primary,
-                  size: 24,
-                ),
+                child: track.imageUrl.isEmpty
+                    ? Icon(
+                        Icons.music_note_rounded,
+                        color: colors.primary,
+                        size: 24,
+                      )
+                    : null,
               ),
               const SizedBox(width: 12),
 
-              // Song info
+              // Track info
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      song.title,
+                      track.name,
                       style: AppTextStyles.textMd(context).copyWith(
                         color: isPlaying ? colors.primary : colors.onBackground,
                         fontWeight: FontWeight.w500,
@@ -66,7 +87,7 @@ class SongCard extends StatelessWidget {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      song.artist,
+                      _artistsText,
                       style: AppTextStyles.textSm(
                         context,
                       ).copyWith(color: colors.muted),
@@ -81,7 +102,7 @@ class SongCard extends StatelessWidget {
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 12),
                 child: Text(
-                  song.duration,
+                  track.duration,
                   style: AppTextStyles.textSm(
                     context,
                   ).copyWith(color: isPlaying ? colors.primary : colors.muted),
