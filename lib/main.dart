@@ -6,12 +6,15 @@ import './screens/playlist_screen.dart';
 
 void main() {
   ServiceLocator.init();
+  ServiceLocator.musicRepository.getRandomTracks().then((tracks) {
+    print(tracks); // Now this prints the actual data
+  });
+
   runApp(MyApp());
 }
 
 class MyApp extends StatelessWidget {
-  final tracks = ServiceLocator.musicRepository.getTracks();
-  MyApp({super.key});
+  const MyApp({super.key});
 
   @override
   Widget build(BuildContext context) {
