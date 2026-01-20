@@ -17,8 +17,4 @@ class MusicApiService {
   Future<Response> fetchTrackById(String id) {
     return _dio.get('/tracks/$id');
   }
-
-  Future<Response> createUser(Map<String, dynamic> payload) {
-    return _dio.post('/users', data: payload);
-  }
 }

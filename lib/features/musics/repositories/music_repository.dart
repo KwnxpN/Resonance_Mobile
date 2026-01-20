@@ -23,7 +23,7 @@ class MusicRepository {
 
       return data.map((e) => TrackModel.fromJson(e)).toList();
     } catch (e) {
-      throw Exception('Failed to load random tracks');
+      throw Exception('Failed to load tracks');
     }
   }
 }
