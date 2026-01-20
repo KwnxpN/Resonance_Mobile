@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import './themes/app_theme.dart';
 import './widgets/theme_preview_page.dart';
-import 'screens/music_taste_screen.dart';
 import './core/di/service_locator.dart';
 import './screens/playlist_screen.dart';
 
