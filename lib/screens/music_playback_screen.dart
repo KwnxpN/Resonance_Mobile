@@ -177,14 +177,14 @@ class _MusicPlaybackScreenState extends State<MusicPlaybackScreen> {
                   Column(
                     children: [
                       Text(
-                        'PLAYING FROM PLAYLIST',
+                        'NOW PLAYING',
                         style: AppTextStyles.textXs(context).copyWith(
                           color: colors.muted,
                           fontWeight: FontWeight.w800,
                         ),
                       ),
                       Text(
-                        'Playlist Name',
+                        _songName,
                         style: AppTextStyles.textMd(context).copyWith(
                           color: colors.onBackground,
                           letterSpacing: 1.2,
@@ -309,19 +309,19 @@ class _MusicPlaybackScreenState extends State<MusicPlaybackScreen> {
 
                       // Playback controls
                       Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                         children: [
                           // Shuffle
-                          IconButton(
-                            icon: const Icon(Icons.shuffle),
-                            style: IconButton.styleFrom(
-                              foregroundColor: colors.muted,
-                              iconSize: 28,
-                            ),
-                            onPressed: () {
-                              // Handle shuffle action
-                            },
-                          ),
+                          // IconButton(
+                          //   icon: const Icon(Icons.shuffle),
+                          //   style: IconButton.styleFrom(
+                          //     foregroundColor: colors.muted,
+                          //     iconSize: 28,
+                          //   ),
+                          //   onPressed: () {
+                          //     // Handle shuffle action
+                          //   },
+                          // ),
 
                           // Previous
                           IconButton(
@@ -330,7 +330,9 @@ class _MusicPlaybackScreenState extends State<MusicPlaybackScreen> {
                               foregroundColor: colors.onBackground,
                               iconSize: 36,
                             ),
-                            onPressed: _currentIndex > 0 ? _playPrevious : null,
+                            onPressed: _isLoading || _currentIndex <= 0
+                              ? null
+                              : _playPrevious,
                           ),
 
                           // Play/Pause
@@ -358,28 +360,28 @@ class _MusicPlaybackScreenState extends State<MusicPlaybackScreen> {
                           ),
 
                           // Next
-                          IconButton(
+                            IconButton(
                             icon: const Icon(Icons.skip_next),
                             style: IconButton.styleFrom(
                               foregroundColor: colors.onBackground,
                               iconSize: 36,
                             ),
-                            onPressed: _currentIndex < _trackList.length - 1
-                                ? _playNext
-                                : null,
-                          ),
+                            onPressed: _isLoading || _currentIndex >= _trackList.length - 1
+                              ? null
+                              : _playNext,
+                            ),
 
                           // Repeat
-                          IconButton(
-                            icon: const Icon(Icons.repeat),
-                            style: IconButton.styleFrom(
-                              foregroundColor: colors.primary,
-                              iconSize: 28,
-                            ),
-                            onPressed: () {
-                              // Handle repeat action
-                            },
-                          ),
+                          // IconButton(
+                          //   icon: const Icon(Icons.repeat),
+                          //   style: IconButton.styleFrom(
+                          //     foregroundColor: colors.primary,
+                          //     iconSize: 28,
+                          //   ),
+                          //   onPressed: () {
+                          //     // Handle repeat action
+                          //   },
+                          // ),
                         ],
                       ),
 
@@ -451,12 +453,12 @@ class _MusicPlaybackScreenState extends State<MusicPlaybackScreen> {
                           ),
 
                           // Lyrics Button
-                          IconButton(
-                            icon: const Icon(Icons.lyrics),
-                            onPressed: () {
-                              // Handle lyrics action
-                            },
-                          ),
+                          // IconButton(
+                          //   icon: const Icon(Icons.lyrics),
+                          //   onPressed: () {
+                          //     // Handle lyrics action
+                          //   },
+                          // ),
                         ],
                       ),
                     ],
