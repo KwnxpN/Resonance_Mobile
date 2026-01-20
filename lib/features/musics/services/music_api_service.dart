@@ -10,6 +10,10 @@ class MusicApiService {
     return _dio.get('/tracks');
   }
 
+  Future<Response> fetchRandomTracks() {
+    return _dio.get('/tracks/random');
+  }
+
   Future<Response> fetchTrackById(String id) {
     return _dio.get('/tracks/$id');
   }
