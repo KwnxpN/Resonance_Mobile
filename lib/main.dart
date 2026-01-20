@@ -2,13 +2,20 @@ import 'package:flutter/material.dart';
 import './themes/app_theme.dart';
 import './widgets/theme_preview_page.dart';
 import 'screens/music_taste_screen.dart';
+import './core/di/service_locator.dart';
+import './screens/playlist_screen.dart';
 
 void main() {
-  runApp(const MyApp());
+  ServiceLocator.init();
+  ServiceLocator.musicRepository.getRandomTracks().then((tracks) {
+    print(tracks); // Now this prints the actual data
+  });
+
+  runApp(MyApp());
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+  MyApp({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -16,6 +23,7 @@ class MyApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       theme: AppTheme.dark(),
       home:  MusicTasteScreen(),
+      home: const PlaylistScreen(),
     );
   }
 }
