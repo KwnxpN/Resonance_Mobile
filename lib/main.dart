@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
-import './themes/app_theme.dart';
-import './widgets/theme_preview_page.dart';
 import './core/di/service_locator.dart';
-import './screens/playlist_screen.dart';
-import './screens/music_playback_screen.dart';
+
+import './themes/app_theme.dart';
+import './themes/app_colors.dart';
+
+import './screens/home_screen.dart';
 import './screens/music_taste_screen.dart';
 
 void main() {
   ServiceLocator.init();
-
   runApp(const MyApp());
 }
 
@@ -20,69 +20,74 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       theme: AppTheme.dark(),
-      home: const HomeScreen(),
+      home: const MainScreen(),
     );
   }
 }
 
-class HomeScreen extends StatelessWidget {
-  const HomeScreen({super.key});
+class MainScreen extends StatefulWidget {
+  const MainScreen({super.key});
+
+  @override
+  State<MainScreen> createState() => _MainScreenState();
+}
+
+class _MainScreenState extends State<MainScreen> {
+  int _currentIndex = 0;
+
+  final List<Widget> _screens = const [
+    HomeScreen(),
+    Center(child: Text('Discover Screen')),
+    MusicTasteScreen(),
+    Center(child: Text('Profile Screen')),
+  ];
 
   @override
   Widget build(BuildContext context) {
+    final colors = Theme.of(context).extension<AppColors>()!;
+
     return Scaffold(
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            ElevatedButton(
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => ThemePreviewPage(),
-                  ),
-                );
-              },
-              child: const Text('Go to Theme Preview'),
-            ),
+      body: _screens[_currentIndex],
+      bottomNavigationBar: Container(
+        decoration: BoxDecoration(
+          color: colors.background,
+          border: Border(top: BorderSide(color: colors.border, width: 1.5)),
+        ),
 
-            ElevatedButton(
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => PlaylistScreen(),
-                  ),
-                );
-              },
-              child: const Text('Go to Playlist Screen'),
-            ),
+        child: SafeArea(
+          child: SizedBox(
+            height: 80,
+            child: BottomNavigationBar(
+              currentIndex: _currentIndex,
+              onTap: (index) => setState(() => _currentIndex = index),
 
-            ElevatedButton(
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => MusicPlaybackScreen(),
-                  ),
-                );
-              },
-              child: const Text('Go to Music Playback Screen'),
-            ),
+              type: BottomNavigationBarType.fixed,
+              backgroundColor: colors.background,
+              selectedItemColor: colors.primary,
+              unselectedItemColor: colors.onSurface.withValues(alpha: 0.6),
+              iconSize: 28,
+              elevation: 0,
 
-            ElevatedButton(
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => MusicTasteScreen(),
-                  ),
-                );
-              },
-              child: const Text('Go to Music Taste Screen'),
+              items: const [
+                BottomNavigationBarItem(
+                  icon: Icon(Icons.home),
+                  label: 'Home',
+                ),
+                BottomNavigationBarItem(
+                  icon: Icon(Icons.explore),
+                  label: 'Discover',
+                ),
+                BottomNavigationBarItem(
+                  icon: Icon(Icons.group),
+                  label: 'Matches',
+                ),
+                BottomNavigationBarItem(
+                  icon: Icon(Icons.person),
+                  label: 'Profile',
+                ),
+              ],
             ),
-          ],
+          ),
         ),
       ),
     );
