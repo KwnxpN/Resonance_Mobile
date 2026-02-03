@@ -17,4 +17,5 @@ class MusicApiService {
   Future<Response> fetchTrackById(String id) {
     return _dio.get('/tracks/$id');
   }
+  
 }
