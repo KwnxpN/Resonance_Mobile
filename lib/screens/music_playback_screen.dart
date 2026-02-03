@@ -83,13 +83,13 @@ class _MusicPlaybackScreenState extends State<MusicPlaybackScreen> {
         _imageURL = track.imageUrl;
       });
 
-      final audioUrl = await ServiceLocator.jamendoService.findTrackAudio(
+      final audioUrl = await ServiceLocator.soundcloudService.findTrackAudio(
         track.name,
         track.artists.first,
       );
 
       if (audioUrl == null) {
-        throw Exception('No audio found on Jamendo');
+        throw Exception('No audio found on SoundCloud');
       }
 
       await _player.setUrl(audioUrl);
@@ -104,6 +104,7 @@ class _MusicPlaybackScreenState extends State<MusicPlaybackScreen> {
       if (!mounted) return;
 
       await _player.stop();
+      // _playNext();
 
       setState(() {
         _isLoading = false;
@@ -185,18 +186,10 @@ class _MusicPlaybackScreenState extends State<MusicPlaybackScreen> {
                   Column(
                     children: [
                       Text(
-                        'NOW PLAYING',
+                        _isLoading ? 'Loading...' : 'NOW PLAYING',
                         style: AppTextStyles.textXs(context).copyWith(
                           color: colors.muted,
                           fontWeight: FontWeight.w800,
-                        ),
-                      ),
-                      Text(
-                        _isLoading ? 'Loading...' : _songName,
-                        style: AppTextStyles.textMd(context).copyWith(
-                          color: colors.onBackground,
-                          letterSpacing: 1.2,
-                          fontWeight: FontWeight.bold,
                         ),
                       ),
                     ],
