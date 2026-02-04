@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../features/users/services/mock_auth_service.dart';
+import '../core/di/service_locator.dart';
 
 class RegisterPage extends StatefulWidget {
   const RegisterPage({super.key});
@@ -12,7 +12,7 @@ class _RegisterPageState extends State<RegisterPage> {
   final emailCtrl = TextEditingController();
   final passCtrl = TextEditingController();
   final nameCtrl = TextEditingController();
-  final auth = MockAuthService();
+  final auth = ServiceLocator.authRepository;
 
   bool hidePass = true;
   String? error;
@@ -36,14 +36,17 @@ class _RegisterPageState extends State<RegisterPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        iconTheme: const IconThemeData(color: Colors.white),
+      ),
+      extendBodyBehindAppBar: true,
       body: Container(
         padding: const EdgeInsets.all(24),
         decoration: const BoxDecoration(
           gradient: LinearGradient(
-            colors: [
-              Color(0xFF140016),
-              Color(0xFF2A0033),
-            ],
+            colors: [Color(0xFF140016), Color(0xFF2A0033)],
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
           ),
@@ -52,15 +55,15 @@ class _RegisterPageState extends State<RegisterPage> {
           child: SingleChildScrollView(
             child: Column(
               children: [
-
                 const SizedBox(height: 40),
 
                 const Text(
                   "Find your rhythm",
                   style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 26,
-                      fontWeight: FontWeight.bold),
+                    color: Colors.white,
+                    fontSize: 26,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
 
                 const SizedBox(height: 8),
@@ -77,28 +80,27 @@ class _RegisterPageState extends State<RegisterPage> {
                 _field(emailCtrl, "Email"),
                 const SizedBox(height: 16),
 
-                _field(passCtrl, "Password",
-                    obscure: hidePass,
-                    suffix: IconButton(
-                      icon: Icon(
-                        hidePass
-                            ? Icons.visibility_off
-                            : Icons.visibility,
-                        color: Colors.white54,
-                      ),
-                      onPressed: () =>
-                          setState(() => hidePass = !hidePass),
-                    )),
+                _field(
+                  passCtrl,
+                  "Password",
+                  obscure: hidePass,
+                  suffix: IconButton(
+                    icon: Icon(
+                      hidePass ? Icons.visibility_off : Icons.visibility,
+                      color: Colors.white54,
+                    ),
+                    onPressed: () => setState(() => hidePass = !hidePass),
+                  ),
+                ),
 
                 if (error != null) ...[
                   const SizedBox(height: 12),
-                  Text(error!,
-                      style: const TextStyle(color: Colors.redAccent)),
+                  Text(error!, style: const TextStyle(color: Colors.redAccent)),
                 ],
 
                 const SizedBox(height: 24),
 
-                _pinkButton("Start Listening →", register),
+                _pinkButton("Start Listening", register),
               ],
             ),
           ),
@@ -107,8 +109,12 @@ class _RegisterPageState extends State<RegisterPage> {
     );
   }
 
-  Widget _field(TextEditingController c, String label,
-      {bool obscure = false, Widget? suffix}) {
+  Widget _field(
+    TextEditingController c,
+    String label, {
+    bool obscure = false,
+    Widget? suffix,
+  }) {
     return TextField(
       controller: c,
       obscureText: obscure,
@@ -139,9 +145,10 @@ class _RegisterPageState extends State<RegisterPage> {
             borderRadius: BorderRadius.circular(30),
           ),
         ),
-        child: Text(text,
-            style: const TextStyle(
-                fontWeight: FontWeight.bold, fontSize: 16)),
+        child: Text(
+          text,
+          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.white70),
+        ),
       ),
     );
   }

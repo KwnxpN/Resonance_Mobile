@@ -9,13 +9,14 @@ import './screens/register_screen.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
+
   ServiceLocator.init();
 
-  runApp(MyApp());
+  runApp(const MyApp());
 }
 
 class MyApp extends StatelessWidget {
-  MyApp({super.key});
+  const MyApp({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -31,6 +32,7 @@ class MyApp extends StatelessWidget {
         "/playlist": (_) => const PlaylistScreen(),
         "/taste": (_) => const MusicTasteScreen(),
       },
+
     );
   }
 }

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../features/users/services/mock_auth_service.dart';
+import '../core/di/service_locator.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -11,7 +11,7 @@ class LoginPage extends StatefulWidget {
 class _LoginPageState extends State<LoginPage> {
   final emailCtrl = TextEditingController();
   final passCtrl = TextEditingController();
-  final auth = MockAuthService();
+  final auth = ServiceLocator.authRepository;
 
   bool hidePass = true;
   String? error;
@@ -27,6 +27,8 @@ class _LoginPageState extends State<LoginPage> {
 
       ScaffoldMessenger.of(context)
           .showSnackBar(const SnackBar(content: Text("Login success")));
+          final ok = await ServiceLocator.authRepository.checkSession();
+          print("SESSION VALID = $ok");
     } catch (e) {
       setState(() => error = "Invalid login");
     }
@@ -156,7 +158,7 @@ class _LoginPageState extends State<LoginPage> {
         ),
         child: Text(text,
             style: const TextStyle(
-                fontWeight: FontWeight.bold, fontSize: 16)),
+                fontWeight: FontWeight.bold, fontSize: 16, color: Colors.white70)),
       ),
     );
   }

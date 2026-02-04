@@ -38,7 +38,12 @@ class _MusicPlaybackScreenState extends State<MusicPlaybackScreen> {
     try {
       final trackList = await ServiceLocator.musicRepository.getRandomTracks();
 
-      if (!mounted || trackList.isEmpty) return;
+      if (!mounted) return;
+
+      if (trackList.isEmpty) {
+        setState(() => _isLoading = false);
+        return;
+      }
 
       setState(() {
         _trackList = trackList;
@@ -78,27 +83,31 @@ class _MusicPlaybackScreenState extends State<MusicPlaybackScreen> {
         _imageURL = track.imageUrl;
       });
 
-      final audioUrl = await ServiceLocator.jamendoService.findTrackAudio(
+      final audioUrl = await ServiceLocator.soundcloudService.findTrackAudio(
         track.name,
         track.artists.first,
       );
 
       if (audioUrl == null) {
-        throw Exception('No audio found on Jamendo');
+        throw Exception('No audio found on SoundCloud');
       }
 
       await _player.setUrl(audioUrl);
-      await _player.play();
 
       if (mounted) {
         setState(() => _isLoading = false);
+        await _player.play();
       }
     } catch (e) {
       debugPrint('Failed to play track: $e');
 
       if (!mounted) return;
 
+      await _player.stop();
+      // _playNext();
+
       setState(() {
+        _isLoading = false;
         _songName = 'Error loading song';
         _artistName = '';
         _imageURL = '';
@@ -177,18 +186,10 @@ class _MusicPlaybackScreenState extends State<MusicPlaybackScreen> {
                   Column(
                     children: [
                       Text(
-                        'NOW PLAYING',
+                        _isLoading ? 'Loading...' : 'NOW PLAYING',
                         style: AppTextStyles.textXs(context).copyWith(
                           color: colors.muted,
                           fontWeight: FontWeight.w800,
-                        ),
-                      ),
-                      Text(
-                        _songName,
-                        style: AppTextStyles.textMd(context).copyWith(
-                          color: colors.onBackground,
-                          letterSpacing: 1.2,
-                          fontWeight: FontWeight.bold,
                         ),
                       ),
                     ],
@@ -240,7 +241,7 @@ class _MusicPlaybackScreenState extends State<MusicPlaybackScreen> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
-                                  _songName,
+                                  _isLoading ? 'Loading...' : _songName,
                                   style: AppTextStyles.textXl(context).copyWith(
                                     color: colors.onBackground,
                                     fontWeight: FontWeight.bold,
@@ -249,7 +250,7 @@ class _MusicPlaybackScreenState extends State<MusicPlaybackScreen> {
                                   overflow: TextOverflow.ellipsis,
                                 ),
                                 Text(
-                                  _artistName,
+                                  _isLoading ? 'Loading...' : _artistName,
                                   style: AppTextStyles.textMd(
                                     context,
                                   ).copyWith(color: colors.muted),
@@ -331,8 +332,8 @@ class _MusicPlaybackScreenState extends State<MusicPlaybackScreen> {
                               iconSize: 36,
                             ),
                             onPressed: _isLoading || _currentIndex <= 0
-                              ? null
-                              : _playPrevious,
+                                ? null
+                                : _playPrevious,
                           ),
 
                           // Play/Pause
@@ -360,16 +361,18 @@ class _MusicPlaybackScreenState extends State<MusicPlaybackScreen> {
                           ),
 
                           // Next
-                            IconButton(
+                          IconButton(
                             icon: const Icon(Icons.skip_next),
                             style: IconButton.styleFrom(
                               foregroundColor: colors.onBackground,
                               iconSize: 36,
                             ),
-                            onPressed: _isLoading || _currentIndex >= _trackList.length - 1
-                              ? null
-                              : _playNext,
-                            ),
+                            onPressed:
+                                _isLoading ||
+                                    _currentIndex >= _trackList.length - 1
+                                ? null
+                                : _playNext,
+                          ),
 
                           // Repeat
                           // IconButton(
