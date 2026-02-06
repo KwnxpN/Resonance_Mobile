@@ -1,10 +1,9 @@
 import 'package:dio/dio.dart';
-import '../../../core/network/dio_client.dart';
 
 class MusicApiService {
   final Dio _dio;
 
-  MusicApiService(DioClient client) : _dio = client.dio;
+  MusicApiService(this._dio);
 
   Future<Response> fetchTracks() {
     return _dio.get('/tracks');
@@ -18,4 +17,13 @@ class MusicApiService {
     return _dio.get('/tracks/$id');
   }
   
+  Future<Response> postUserPreferences(Map<String, dynamic> genreCounter) {
+    return _dio.post(
+      '/user/preferences',
+      data: {
+      "genres": genreCounter,
+    },
+    );
+  }
+
 }

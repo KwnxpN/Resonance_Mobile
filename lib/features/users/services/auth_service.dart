@@ -1,10 +1,9 @@
 import 'package:dio/dio.dart';
-import '../../../core/network/dio_client.dart';
 
 class AuthApiService {
   final Dio _dio;
 
-  AuthApiService(DioClient client) : _dio = client.dio;
+  AuthApiService(this._dio);
 
   Future<Response> register({
     required String email,

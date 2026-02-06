@@ -7,7 +7,6 @@ import '../widgets/music_taste_result.dart';
 import '../core/di/service_locator.dart';
 import '../features/musics/models/music_model.dart';
 
-
 class MusicTasteScreen extends StatefulWidget {
   const MusicTasteScreen({super.key});
 
@@ -24,12 +23,13 @@ class _MusicTasteScreenState extends State<MusicTasteScreen> {
 
   Map<String, int> genreCounter = {};
 
-  void handleSwipe(Track track, bool liked) {
+  void handleSwipe(Track track, bool liked) async {
     if (liked) {
       for (final genre in track.genre) {
         genreCounter[genre] = (genreCounter[genre] ?? 0) + 1;
       }
     }
+
     setState(() {
       if (tracks.isNotEmpty) tracks.removeLast();
     });
@@ -37,6 +37,14 @@ class _MusicTasteScreenState extends State<MusicTasteScreen> {
     if (tracks.isEmpty) {
       debugPrint('All tracks swiped!');
       debugPrint('User genre taste: $genreCounter');
+
+      try {
+        await ServiceLocator.musicRepository.saveUserTaste(genreCounter);
+        debugPrint("Taste saved");
+      } catch (e) {
+        debugPrint("Taste save failed: $e");
+      }
+
       setState(() => finished = true);
     }
   }
@@ -48,21 +56,25 @@ class _MusicTasteScreenState extends State<MusicTasteScreen> {
   }
 
   Track _convertModelToTrack(TrackModel m) {
-    // Robust conversion: artists/genres can be either List<String> or List<Map>
     String artist = '';
     try {
       if (m.artists.isNotEmpty) {
         final a = m.artists[0];
-        artist = (a is Map && a['name'] != null) ? a['name'].toString() : a.toString();
+        artist = (a is Map && a['name'] != null)
+            ? a['name'].toString()
+            : a.toString();
       }
     } catch (_) {}
 
     List<String> genres = [];
     try {
-      genres = m.genres.map((g) {
-        if (g is Map && g['name'] != null) return g['name'].toString();
-        return g.toString();
-      }).cast<String>().toList();
+      genres = m.genres
+          .map((g) {
+            if (g is Map && g['name'] != null) return g['name'].toString();
+            return g.toString();
+          })
+          .cast<String>()
+          .toList();
     } catch (_) {}
 
     return Track(
@@ -114,7 +126,9 @@ class _MusicTasteScreenState extends State<MusicTasteScreen> {
                   }
 
                   if (!initialized) {
-                    tracks = snapshot.data!.map((m) => _convertModelToTrack(m)).toList();
+                    tracks = snapshot.data!
+                        .map((m) => _convertModelToTrack(m))
+                        .toList();
                     initialized = true;
                   }
 
@@ -147,7 +161,8 @@ class _MusicTasteScreenState extends State<MusicTasteScreen> {
 
                       return Padding(
                         padding: const EdgeInsets.only(top: 12),
-                        child: SwipeCard(track: track,
+                        child: SwipeCard(
+                          track: track,
                           onLike: () {},
                           onDislike: () {},
                         ),
@@ -163,5 +178,3 @@ class _MusicTasteScreenState extends State<MusicTasteScreen> {
     );
   }
 }
-
-  

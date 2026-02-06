@@ -1,19 +1,21 @@
 import 'package:flutter/material.dart';
 import '../core/di/service_locator.dart';
 
-class LoginPage extends StatefulWidget {
-  const LoginPage({super.key});
+class LoginScreen extends StatefulWidget {
+  const LoginScreen({super.key});
 
   @override
-  State<LoginPage> createState() => _LoginPageState();
+  State<LoginScreen> createState() => _LoginScreenState();
 }
 
-class _LoginPageState extends State<LoginPage> {
+class _LoginScreenState extends State<LoginScreen> {
   final emailCtrl = TextEditingController();
   final passCtrl = TextEditingController();
   final auth = ServiceLocator.authRepository;
+  final passFocus = FocusNode();
 
   bool hidePass = true;
+  bool loading = false;
   String? error;
 
   Future<void> login() async {
@@ -25,12 +27,13 @@ class _LoginPageState extends State<LoginPage> {
 
       if (!mounted) return;
 
-      ScaffoldMessenger.of(context)
-          .showSnackBar(const SnackBar(content: Text("Login success")));
-          final ok = await ServiceLocator.authRepository.checkSession();
-          print("SESSION VALID = $ok");
+      
+      Navigator.pushReplacementNamed(context, "/music_taste");
     } catch (e) {
-      setState(() => error = "Invalid login");
+      passCtrl.clear();
+      passFocus.requestFocus();
+
+      setState(() => error = "Invalid email or password");
     }
   }
 
@@ -132,7 +135,7 @@ class _LoginPageState extends State<LoginPage> {
       style: const TextStyle(color: Colors.white),
       decoration: InputDecoration(
         hintText: label,
-        hintStyle: const TextStyle(color: Colors.white54),
+        hintStyle: const TextStyle(color: Colors.white),
         filled: true,
         fillColor: const Color(0x33FFFFFF),
         suffixIcon: suffix,
@@ -158,7 +161,7 @@ class _LoginPageState extends State<LoginPage> {
         ),
         child: Text(text,
             style: const TextStyle(
-                fontWeight: FontWeight.bold, fontSize: 16, color: Colors.white70)),
+                fontWeight: FontWeight.bold, fontSize: 16, color: Colors.white)),
       ),
     );
   }

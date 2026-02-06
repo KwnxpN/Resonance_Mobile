@@ -1,35 +1,47 @@
 import 'package:flutter/material.dart';
 import '../core/di/service_locator.dart';
 
-class RegisterPage extends StatefulWidget {
-  const RegisterPage({super.key});
+class RegisterScreen extends StatefulWidget {
+  const RegisterScreen({super.key});
 
   @override
-  State<RegisterPage> createState() => _RegisterPageState();
+  State<RegisterScreen> createState() => _RegisterScreenState();
 }
 
-class _RegisterPageState extends State<RegisterPage> {
+class _RegisterScreenState extends State<RegisterScreen> {
+  final _formKey = GlobalKey<FormState>();
+
   final emailCtrl = TextEditingController();
   final passCtrl = TextEditingController();
   final nameCtrl = TextEditingController();
+
   final auth = ServiceLocator.authRepository;
 
   bool hidePass = true;
   String? error;
+  bool loading = false;
 
   Future<void> register() async {
+    if (!_formKey.currentState!.validate()) return;
+
+    setState(() {
+      loading = true;
+      error = null;
+    });
+
     try {
       await auth.register(
-        email: emailCtrl.text,
+        email: emailCtrl.text.trim(),
         password: passCtrl.text,
-        name: nameCtrl.text,
+        name: nameCtrl.text.trim(),
       );
 
       if (!mounted) return;
-
       Navigator.pop(context);
     } catch (e) {
       setState(() => error = "Register failed");
+    } finally {
+      if (mounted) setState(() => loading = false);
     }
   }
 
@@ -53,55 +65,45 @@ class _RegisterPageState extends State<RegisterPage> {
         ),
         child: Center(
           child: SingleChildScrollView(
-            child: Column(
-              children: [
-                const SizedBox(height: 40),
+            child: Form(
+              key: _formKey,
+              child: Column(
+                children: [
+                  const SizedBox(height: 40),
 
-                const Text(
-                  "Find your rhythm",
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 26,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-
-                const SizedBox(height: 8),
-
-                const Text(
-                  "Connect with fans like you",
-                  style: TextStyle(color: Colors.white60),
-                ),
-
-                const SizedBox(height: 32),
-
-                _field(nameCtrl, "Username"),
-                const SizedBox(height: 16),
-                _field(emailCtrl, "Email"),
-                const SizedBox(height: 16),
-
-                _field(
-                  passCtrl,
-                  "Password",
-                  obscure: hidePass,
-                  suffix: IconButton(
-                    icon: Icon(
-                      hidePass ? Icons.visibility_off : Icons.visibility,
-                      color: Colors.white54,
+                  const Text(
+                    "Find your rhythm",
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 26,
+                      fontWeight: FontWeight.bold,
                     ),
-                    onPressed: () => setState(() => hidePass = !hidePass),
                   ),
-                ),
 
-                if (error != null) ...[
-                  const SizedBox(height: 12),
-                  Text(error!, style: const TextStyle(color: Colors.redAccent)),
+                  const SizedBox(height: 32),
+
+                  _nameField(),
+                  const SizedBox(height: 16),
+
+                  _emailField(),
+                  const SizedBox(height: 16),
+
+                  _passwordField(),
+
+                  if (error != null) ...[
+                    const SizedBox(height: 12),
+                    Text(error!,
+                        style: const TextStyle(color: Colors.redAccent)),
+                  ],
+
+                  const SizedBox(height: 24),
+
+                  _submitButton(
+                    loading ? "Loading..." : "Start Listening",
+                    loading ? null : register,
+                  ),
                 ],
-
-                const SizedBox(height: 24),
-
-                _pinkButton("Start Listening", register),
-              ],
+              ),
             ),
           ),
         ),
@@ -109,31 +111,77 @@ class _RegisterPageState extends State<RegisterPage> {
     );
   }
 
-  Widget _field(
-    TextEditingController c,
-    String label, {
-    bool obscure = false,
-    Widget? suffix,
-  }) {
-    return TextField(
-      controller: c,
-      obscureText: obscure,
+  Widget _nameField() {
+    return TextFormField(
+      controller: nameCtrl,
       style: const TextStyle(color: Colors.white),
-      decoration: InputDecoration(
-        hintText: label,
-        hintStyle: const TextStyle(color: Colors.white54),
-        filled: true,
-        fillColor: const Color(0x33FFFFFF),
-        suffixIcon: suffix,
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(30),
-          borderSide: BorderSide.none,
-        ),
-      ),
+      decoration: _inputDeco("Username"),
+      validator: (v) {
+        if (v == null || v.trim().isEmpty) {
+          return "Name is required";
+        }
+        if (v.trim().length < 3) {
+          return "Name too short";
+        }
+        return null;
+      },
     );
   }
 
-  Widget _pinkButton(String text, VoidCallback onTap) {
+  Widget _emailField() {
+    return TextFormField(
+      controller: emailCtrl,
+      style: const TextStyle(color: Colors.white),
+      keyboardType: TextInputType.emailAddress,
+      decoration: _inputDeco("Email"),
+      validator: (v) {
+        if (v == null || v.isEmpty) return "Email required";
+
+        final ok = RegExp(r'^[^@]+@[^@]+\.[^@]+').hasMatch(v);
+        if (!ok) return "Invalid email";
+
+        return null;
+      },
+    );
+  }
+
+  Widget _passwordField() {
+    return TextFormField(
+      controller: passCtrl,
+      obscureText: hidePass,
+      style: const TextStyle(color: Colors.white),
+      decoration: _inputDeco("Password").copyWith(
+        suffixIcon: IconButton(
+          icon: Icon(
+            hidePass ? Icons.visibility_off : Icons.visibility,
+            color: Colors.white54,
+          ),
+          onPressed: () => setState(() => hidePass = !hidePass),
+        ),
+      ),
+      validator: (v) {
+        if (v == null || v.isEmpty) return "Password required";
+        if (v.length < 8) return "Min 8 characters";
+        return null;
+      },
+    );
+  }
+
+  InputDecoration _inputDeco(String label) {
+    return InputDecoration(
+      hintText: label,
+      hintStyle: const TextStyle(color: Colors.white54),
+      filled: true,
+      fillColor: const Color(0x33FFFFFF),
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(30),
+        borderSide: BorderSide.none,
+      ),
+      errorStyle: const TextStyle(color: Colors.orangeAccent),
+    );
+  }
+
+  Widget _submitButton(String text, VoidCallback? onTap) {
     return SizedBox(
       width: double.infinity,
       height: 52,
@@ -147,7 +195,11 @@ class _RegisterPageState extends State<RegisterPage> {
         ),
         child: Text(
           text,
-          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.white70),
+          style: const TextStyle(
+            fontWeight: FontWeight.bold,
+            fontSize: 16,
+            color: Colors.white,
+          ),
         ),
       ),
     );
