@@ -1,11 +1,17 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_project/screens/login_screen.dart';
+import './themes/app_theme.dart';
 import './core/di/service_locator.dart';
 
 import './themes/app_theme.dart';
 import './themes/app_colors.dart';
 
-import './screens/home_screen.dart';
 import './screens/music_taste_screen.dart';
+import './screens/register_screen.dart';
+import './screens/home_screen.dart';
+import './screens/music_playback_screen.dart';
+import './screens/playlist_screen.dart';
+
 
 void main() {
   ServiceLocator.init();
@@ -20,6 +26,13 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       theme: AppTheme.dark(),
+      routes: {
+        '/login': (context) => const LoginScreen(),
+        '/register': (context) => const RegisterScreen(),
+        '/music_taste': (context) => const MusicTasteScreen(),
+        '/playlist': (context) => const PlaylistScreen(),
+        '/music_playback': (context) => const MusicPlaybackScreen(),
+      },
       home: const MainScreen(),
     );
   }
@@ -35,15 +48,24 @@ class MainScreen extends StatefulWidget {
 class _MainScreenState extends State<MainScreen> {
   int _currentIndex = 0;
 
-  final List<Widget> _screens = const [
-    HomeScreen(),
-    Center(child: Text('Discover Screen')),
-    MusicTasteScreen(),
-    Center(child: Text('Profile Screen')),
-  ];
-
   @override
   Widget build(BuildContext context) {
+    final List<Widget> _screens = [
+      HomeScreen(),
+      Center(child: Text('Discover Screen')),
+      MusicTasteScreen(),
+      Center(child: ElevatedButton(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => LoginScreen(),
+                    ),
+                  );
+                },
+                child: const Text('Go to Login Screen'),
+              ),),
+    ];
     final colors = Theme.of(context).extension<AppColors>()!;
 
     return Scaffold(
