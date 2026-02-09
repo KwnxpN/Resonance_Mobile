@@ -26,4 +26,10 @@ class MusicRepository {
       throw Exception('Failed to load tracks');
     }
   }
+
+  Future<void> saveUserTaste(Map<String, int> genreCounter) async {
+    await apiService.postUserPreferences(genreCounter);
+    
+  }
+
 }

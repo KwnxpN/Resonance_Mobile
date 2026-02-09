@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_project/screens/login_screen.dart';
 import './themes/app_theme.dart';
 import './widgets/theme_preview_page.dart';
 import './core/di/service_locator.dart';
 import './screens/playlist_screen.dart';
-import './screens/music_playback_screen.dart';
 import './screens/music_taste_screen.dart';
+import './screens/register_screen.dart';
+import './screens/music_playback_screen.dart';
+
 
 void main() {
   ServiceLocator.init();
@@ -21,6 +24,13 @@ class MyApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       theme: AppTheme.dark(),
       home: const HomeScreen(),
+      routes: {
+        '/login': (context) => const LoginScreen(),
+        '/register': (context) => const RegisterScreen(),
+        '/music_taste': (context) => const MusicTasteScreen(),
+        '/playlist': (context) => const PlaylistScreen(),
+        '/music_playback': (context) => const MusicPlaybackScreen(),
+      },
     );
   }
 }
@@ -81,6 +91,17 @@ class HomeScreen extends StatelessWidget {
                 );
               },
               child: const Text('Go to Music Taste Screen'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => LoginScreen(),
+                  ),
+                );
+              },
+              child: const Text('Go to Login Screen'),
             ),
           ],
         ),
