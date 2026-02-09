@@ -7,7 +7,7 @@ import './screens/playlist_screen.dart';
 import './screens/music_taste_screen.dart';
 import './screens/register_screen.dart';
 import './screens/music_playback_screen.dart';
-
+import './screens/profile_screen.dart';
 
 void main() {
   ServiceLocator.init();
@@ -30,6 +30,7 @@ class MyApp extends StatelessWidget {
         '/music_taste': (context) => const MusicTasteScreen(),
         '/playlist': (context) => const PlaylistScreen(),
         '/music_playback': (context) => const MusicPlaybackScreen(),
+        '/profile': (context) => const ProfileScreen(),
       },
     );
   }
@@ -49,9 +50,7 @@ class HomeScreen extends StatelessWidget {
               onPressed: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(
-                    builder: (_) => ThemePreviewPage(),
-                  ),
+                  MaterialPageRoute(builder: (_) => ThemePreviewPage()),
                 );
               },
               child: const Text('Go to Theme Preview'),
@@ -61,9 +60,7 @@ class HomeScreen extends StatelessWidget {
               onPressed: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(
-                    builder: (_) => PlaylistScreen(),
-                  ),
+                  MaterialPageRoute(builder: (_) => PlaylistScreen()),
                 );
               },
               child: const Text('Go to Playlist Screen'),
@@ -73,9 +70,7 @@ class HomeScreen extends StatelessWidget {
               onPressed: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(
-                    builder: (_) => MusicPlaybackScreen(),
-                  ),
+                  MaterialPageRoute(builder: (_) => MusicPlaybackScreen()),
                 );
               },
               child: const Text('Go to Music Playback Screen'),
@@ -85,9 +80,7 @@ class HomeScreen extends StatelessWidget {
               onPressed: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(
-                    builder: (_) => MusicTasteScreen(),
-                  ),
+                  MaterialPageRoute(builder: (_) => MusicTasteScreen()),
                 );
               },
               child: const Text('Go to Music Taste Screen'),
@@ -96,12 +89,19 @@ class HomeScreen extends StatelessWidget {
               onPressed: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(
-                    builder: (_) => LoginScreen(),
-                  ),
+                  MaterialPageRoute(builder: (_) => LoginScreen()),
                 );
               },
               child: const Text('Go to Login Screen'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => ProfileScreen()),
+                );
+              },
+              child: const Text('Go to Profile Screen'),
             ),
           ],
         ),
