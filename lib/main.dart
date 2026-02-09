@@ -47,6 +47,21 @@ class _MainScreenState extends State<MainScreen> {
     final colors = Theme.of(context).extension<AppColors>()!;
 
     return Scaffold(
+      appBar: AppBar(
+        backgroundColor: colors.background,
+        elevation: 0,
+        title: Row(
+          children: [
+            Row(
+              children: [
+                Icon(Icons.graphic_eq, color: colors.primary, size: 32),
+                const SizedBox(width: 8),
+                const Text("RESONANCE", style: TextStyle()),
+              ],
+            ),
+          ],
+        ),
+      ),
       body: _screens[_currentIndex],
       bottomNavigationBar: Container(
         decoration: BoxDecoration(
@@ -69,10 +84,7 @@ class _MainScreenState extends State<MainScreen> {
               elevation: 0,
 
               items: const [
-                BottomNavigationBarItem(
-                  icon: Icon(Icons.home),
-                  label: 'Home',
-                ),
+                BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
                 BottomNavigationBarItem(
                   icon: Icon(Icons.explore),
                   label: 'Discover',
