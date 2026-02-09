@@ -52,7 +52,7 @@ class _MainScreenState extends State<MainScreen> {
   Widget build(BuildContext context) {
     final List<Widget> _screens = [
       HomeScreen(),
-      Center(child: Text('Discover Screen')),
+      PlaylistScreen(),
       MusicTasteScreen(),
       Center(child: ElevatedButton(
                 onPressed: () {
