@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
+import 'dart:io';
 import 'package:flutter_project/screens/login_screen.dart';
-import './themes/app_theme.dart';
 import './core/di/service_locator.dart';
 
 import './themes/app_theme.dart';
@@ -12,8 +12,19 @@ import './screens/home_screen.dart';
 import './screens/music_playback_screen.dart';
 import './screens/playlist_screen.dart';
 
+// Allow all certificates (for development only)
+class MyHttpOverrides extends HttpOverrides {
+  @override
+  HttpClient createHttpClient(SecurityContext? context) {
+    return super.createHttpClient(context)
+      ..badCertificateCallback = (X509Certificate cert, String host, int port) => true;
+  }
+}
 
 void main() {
+  // Enable certificate bypass for development
+  HttpOverrides.global = MyHttpOverrides();
+  
   ServiceLocator.init();
   runApp(const MyApp());
 }
@@ -47,25 +58,28 @@ class MainScreen extends StatefulWidget {
 
 class _MainScreenState extends State<MainScreen> {
   int _currentIndex = 0;
+  
+  late final List<Widget> _screens = [
+    const HomeScreen(),
+    const PlaylistScreen(),
+    const MusicTasteScreen(),
+    Center(
+      child: ElevatedButton(
+        onPressed: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => const LoginScreen(),
+            ),
+          );
+        },
+        child: const Text('Go to Login Screen'),
+      ),
+    ),
+  ];
 
   @override
   Widget build(BuildContext context) {
-    final List<Widget> _screens = [
-      HomeScreen(),
-      PlaylistScreen(),
-      MusicTasteScreen(),
-      Center(child: ElevatedButton(
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => LoginScreen(),
-                    ),
-                  );
-                },
-                child: const Text('Go to Login Screen'),
-              ),),
-    ];
     final colors = Theme.of(context).extension<AppColors>()!;
 
     return Scaffold(
