@@ -147,7 +147,10 @@ class ThemePreviewPage extends StatelessWidget {
               Navigator.push(
                 context,
                 MaterialPageRoute<void>(
-                  builder: (context) => const MusicPlaybackScreen(),
+                  builder: (context) => const MusicPlaybackScreen(
+                    tracks: [], // Demo only
+                    initialIndex: 0,
+                  ),
                 ),
               );
             },

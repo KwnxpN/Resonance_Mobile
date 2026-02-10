@@ -42,7 +42,6 @@ class MyApp extends StatelessWidget {
         '/register': (context) => const RegisterScreen(),
         '/music_taste': (context) => const MusicTasteScreen(),
         '/playlist': (context) => const PlaylistScreen(),
-        '/music_playback': (context) => const MusicPlaybackScreen(),
       },
       home: const MainScreen(),
     );

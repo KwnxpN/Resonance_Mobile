@@ -3,6 +3,7 @@ import '../core/di/service_locator.dart';
 import '../features/musics/models/music_model.dart';
 import '../widgets/home_widgets/track_image_card.dart';
 import '../widgets/song_card.dart';
+import './music_playback_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -86,10 +87,19 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                       itemCount: pageItems.length,
                       itemBuilder: (context, index) {
+                        final globalIndex = pageIndex * pageSize + index;
                         return TrackImageCard(
                           track: pageItems[index],
                           onTap: () {
-                            print('Tapped on track: ${pageItems[index].name}');
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => MusicPlaybackScreen(
+                                  tracks: recommendedTracks,
+                                  initialIndex: globalIndex,
+                                ),
+                              ),
+                            );
                           },
                         );
                       },
@@ -121,11 +131,22 @@ class _HomeScreenState extends State<HomeScreen> {
                     return Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 16),
                       child: Column(
-                        children: pageItems.map((track) {
+                        children: pageItems.asMap().entries.map((entry) {
+                          final localIndex = entry.key;
+                          final track = entry.value;
+                          final globalIndex = pageIndex * carouselPageSize + localIndex;
                           return SongCard(
                             track: track,
                             onTap: () {
-                              print('Tapped on song: ${track.name}');
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => MusicPlaybackScreen(
+                                    tracks: trendingTracks,
+                                    initialIndex: globalIndex,
+                                  ),
+                                ),
+                              );
                             },
                             onMoreTap: () {
                               print('More options for: ${track.name}');
