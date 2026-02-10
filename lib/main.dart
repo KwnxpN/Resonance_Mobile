@@ -5,12 +5,13 @@ import './core/di/service_locator.dart';
 
 import './themes/app_theme.dart';
 import './themes/app_colors.dart';
+import './themes/app_text_styles.dart';
 
 import './screens/music_taste_screen.dart';
 import './screens/register_screen.dart';
 import './screens/home_screen.dart';
-import './screens/music_playback_screen.dart';
 import './screens/playlist_screen.dart';
+import './screens/profile_screen.dart';
 
 // Allow all certificates (for development only)
 class MyHttpOverrides extends HttpOverrides {
@@ -42,6 +43,7 @@ class MyApp extends StatelessWidget {
         '/register': (context) => const RegisterScreen(),
         '/music_taste': (context) => const MusicTasteScreen(),
         '/playlist': (context) => const PlaylistScreen(),
+        '/profile': (context) => const ProfileScreen(),
       },
       home: const MainScreen(),
     );
@@ -62,19 +64,7 @@ class _MainScreenState extends State<MainScreen> {
     const HomeScreen(),
     const PlaylistScreen(),
     const MusicTasteScreen(),
-    Center(
-      child: ElevatedButton(
-        onPressed: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (_) => const LoginScreen(),
-            ),
-          );
-        },
-        child: const Text('Go to Login Screen'),
-      ),
-    ),
+    const ProfileScreen(),
   ];
 
   @override
@@ -91,7 +81,7 @@ class _MainScreenState extends State<MainScreen> {
               children: [
                 Icon(Icons.graphic_eq, color: colors.primary, size: 32),
                 const SizedBox(width: 8),
-                const Text("RESONANCE", style: TextStyle()),
+                Text("RESONANCE", style: AppTextStyles.textXl(context)),
               ],
             ),
           ],
