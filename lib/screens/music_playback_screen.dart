@@ -8,10 +8,17 @@ import '../core/di/service_locator.dart';
 import 'dart:async';
 
 class MusicPlaybackScreen extends StatefulWidget {
-  const MusicPlaybackScreen({super.key});
+  final List<dynamic> tracks;
+  final int initialIndex;
+
+  const MusicPlaybackScreen({
+    super.key,
+    required this.tracks,
+    this.initialIndex = 0,
+  });
 
   @override
-  _MusicPlaybackScreenState createState() => _MusicPlaybackScreenState();
+  State<MusicPlaybackScreen> createState() => _MusicPlaybackScreenState();
 }
 
 class _MusicPlaybackScreenState extends State<MusicPlaybackScreen> {
@@ -28,42 +35,10 @@ class _MusicPlaybackScreenState extends State<MusicPlaybackScreen> {
   @override
   void initState() {
     super.initState();
-    _loadTracks();
+    _trackList = widget.tracks;
+    _currentIndex = widget.initialIndex;
     _setupPlayerListener();
-  }
-
-  Future<void> _loadTracks() async {
-    setState(() => _isLoading = true);
-
-    try {
-      final trackList = await ServiceLocator.musicRepository.getRandomTracks();
-
-      if (!mounted) return;
-
-      if (trackList.isEmpty) {
-        setState(() => _isLoading = false);
-        return;
-      }
-
-      setState(() {
-        _trackList = trackList;
-        _currentIndex = 0;
-      });
-
-      await _playTrackAtIndex(0);
-    } catch (e, stackTrace) {
-      debugPrint('Failed to load tracks: $e');
-      debugPrintStack(stackTrace: stackTrace);
-
-      if (!mounted) return;
-
-      setState(() {
-        _isLoading = false;
-        _songName = 'Error loading songs';
-        _artistName = '';
-        _imageURL = '';
-      });
-    }
+    _playTrackAtIndex(widget.initialIndex);
   }
 
   Future<void> _playTrackAtIndex(int index) async {
