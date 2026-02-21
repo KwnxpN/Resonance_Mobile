@@ -3,9 +3,10 @@ import '../models/track.dart';
 import '../widgets/swipe_card.dart';
 import '../widgets/music_taste_app_bar.dart';
 import '../widgets/swipeable_card.dart';
-import '../widgets/music_taste_result.dart';
+import '../widgets/card_actions.dart';
 import '../core/di/service_locator.dart';
 import '../features/musics/models/music_model.dart';
+import '../main.dart';
 
 class MusicTasteScreen extends StatefulWidget {
   const MusicTasteScreen({super.key});
@@ -16,12 +17,17 @@ class MusicTasteScreen extends StatefulWidget {
 
 class _MusicTasteScreenState extends State<MusicTasteScreen> {
   late Future<List<TrackModel>> futureTracks;
+
   List<Track> tracks = [];
   bool initialized = false;
-  bool finished = false;
-  bool loadingError = false;
 
   Map<String, int> genreCounter = {};
+
+  @override
+  void initState() {
+    super.initState();
+    futureTracks = ServiceLocator.musicRepository.getRandomTracks();
+  }
 
   void handleSwipe(Track track, bool liked) async {
     if (liked) {
@@ -31,51 +37,39 @@ class _MusicTasteScreenState extends State<MusicTasteScreen> {
     }
 
     setState(() {
-      if (tracks.isNotEmpty) tracks.removeLast();
+      tracks.removeLast();
     });
 
     if (tracks.isEmpty) {
-      debugPrint('All tracks swiped!');
-      debugPrint('User genre taste: $genreCounter');
-
       try {
         await ServiceLocator.musicRepository.saveUserTaste(genreCounter);
-        debugPrint("Taste saved");
-      } catch (e) {
-        debugPrint("Taste save failed: $e");
-      }
+      } catch (_) {}
 
-      setState(() => finished = true);
+      if (!mounted) return;
+
+      Navigator.pushAndRemoveUntil(
+        context,
+        MaterialPageRoute(builder: (_) => const MainScreen()),
+        (route) => false,
+      );
     }
-  }
-
-  @override
-  void initState() {
-    super.initState();
-    futureTracks = ServiceLocator.musicRepository.getRandomTracks();
   }
 
   Track _convertModelToTrack(TrackModel m) {
     String artist = '';
-    try {
-      if (m.artists.isNotEmpty) {
-        final a = m.artists[0];
-        artist = (a is Map && a['name'] != null)
-            ? a['name'].toString()
-            : a.toString();
+    if (m.artists.isNotEmpty) {
+      final a = m.artists.first;
+      if (a is Map && a['name'] != null) {
+        artist = a['name'].toString();
       }
-    } catch (_) {}
+    }
 
-    List<String> genres = [];
-    try {
-      genres = m.genres
-          .map((g) {
-            if (g is Map && g['name'] != null) return g['name'].toString();
-            return g.toString();
-          })
-          .cast<String>()
-          .toList();
-    } catch (_) {}
+    final genres = m.genres.map((g) {
+      if (g is Map && g['name'] != null) {
+        return g['name'].toString();
+      }
+      return g.toString();
+    }).toList();
 
     return Track(
       title: m.name,
@@ -92,83 +86,90 @@ class _MusicTasteScreenState extends State<MusicTasteScreen> {
     return Scaffold(
       backgroundColor: const Color(0xFF120914),
       body: SafeArea(
-        child: Column(
+        child: Stack(
           children: [
-            const MusicTasteAppBar(),
-            Expanded(
-              child: FutureBuilder<List<TrackModel>>(
-                future: futureTracks,
-                builder: (context, snapshot) {
-                  if (finished) {
-                    return MusicTasteResult(genreCounter: genreCounter);
-                  }
+            /// 🔥 เนื้อหาหลัก
+            Positioned.fill(
+              child: Column(
+                children: [
+                  const MusicTasteAppBar(),
+                  Expanded(
+                    child: FutureBuilder<List<TrackModel>>(
+                      future: futureTracks,
+                      builder: (context, snapshot) {
+                        if (snapshot.connectionState ==
+                            ConnectionState.waiting) {
+                          return const Center(
+                            child: CircularProgressIndicator(),
+                          );
+                        }
 
-                  if (snapshot.connectionState == ConnectionState.waiting) {
-                    return const Center(child: CircularProgressIndicator());
-                  }
+                        if (snapshot.hasError ||
+                            !snapshot.hasData ||
+                            snapshot.data!.isEmpty) {
+                          return const Center(
+                            child: Text(
+                              'Failed to load tracks',
+                              style: TextStyle(color: Colors.white),
+                            ),
+                          );
+                        }
 
-                  if (snapshot.hasError) {
-                    return Center(
-                      child: Text(
-                        'Failed to load tracks',
-                        style: const TextStyle(color: Colors.white),
-                      ),
-                    );
-                  }
+                        if (!initialized) {
+                          tracks = snapshot.data!
+                              .map(_convertModelToTrack)
+                              .toList();
+                          initialized = true;
+                        }
 
-                  if (!snapshot.hasData) {
-                    return const Center(
-                      child: Text(
-                        'No tracks available',
-                        style: TextStyle(color: Colors.white),
-                      ),
-                    );
-                  }
+                        if (tracks.isEmpty) {
+                          return const SizedBox();
+                        }
 
-                  if (!initialized) {
-                    tracks = snapshot.data!
-                        .map((m) => _convertModelToTrack(m))
-                        .toList();
-                    initialized = true;
-                  }
+                        return Stack(
+                          alignment: Alignment.center,
+                          children: tracks.asMap().entries.map((entry) {
+                            final index = entry.key;
+                            final track = entry.value;
 
-                  if (tracks.isEmpty) {
-                    return const Center(
-                      child: Text(
-                        'No tracks available',
-                        style: TextStyle(color: Colors.white),
-                      ),
-                    );
-                  }
+                            if (index == tracks.length - 1) {
+                              return SwipeableCard(
+                                track: track,
+                                onLike: () => handleSwipe(track, true),
+                                onDislike: () => handleSwipe(track, false),
+                              );
+                            }
 
-                  return Stack(
-                    alignment: Alignment.center,
-                    children: tracks.asMap().entries.map((entry) {
-                      final index = entry.key;
-                      final track = entry.value;
-
-                      if (index == tracks.length - 1) {
-                        return SwipeableCard(
-                          track: track,
-                          onLike: () {
-                            handleSwipe(track, true);
-                          },
-                          onDislike: () {
-                            handleSwipe(track, false);
-                          },
+                            return Padding(
+                              padding: const EdgeInsets.only(top: 12),
+                              child: SwipeCard(
+                                track: track,
+                              ),
+                            );
+                          }).toList(),
                         );
-                      }
+                      },
+                    ),
+                  ),
+                ],
+              ),
+            ),
 
-                      return Padding(
-                        padding: const EdgeInsets.only(top: 12),
-                        child: SwipeCard(
-                          track: track,
-                          onLike: () {},
-                          onDislike: () {},
-                        ),
-                      );
-                    }).toList(),
-                  );
+            /// 🔥 ปุ่มลอยติดล่างจอ
+            Positioned(
+              left: 24,
+              right: 24,
+              bottom: 30,
+              child: CardActions(
+                onLike: () {
+                  if (tracks.isNotEmpty) {
+                    handleSwipe(tracks.last, true);
+                  }
+                },
+                onDislike: () {
+                  if (tracks.isNotEmpty) {
+                    handleSwipe(tracks.last, false);
+                  }
                 },
               ),
             ),

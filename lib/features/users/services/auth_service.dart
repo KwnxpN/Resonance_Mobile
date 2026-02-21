@@ -21,13 +21,13 @@ class AuthApiService {
   }
 
   Future<Response> login({
-    required String email,
+    required String identifier,
     required String password,
   }) {
     return _dio.post(
       "/login",
       data: {
-        "email": email,
+        "identifier": identifier,
         "password": password,
       },
     );

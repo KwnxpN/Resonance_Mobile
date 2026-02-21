@@ -5,6 +5,7 @@ import '../widgets/music_player_card.dart'; // Ensure this path is correct
 import '../widgets/vibe_chip.dart';
 import '../widgets/artist_avatar.dart';
 import '../widgets/menu_option.dart';
+import '../core/di/service_locator.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -48,16 +49,18 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     const SizedBox(height: 12),
                     Text(
                       'John Doe',
-                      style: AppTextStyles.textXl(
-                        context,
-                      ).copyWith(color: colors.onBackground, fontWeight: FontWeight.bold),
+                      style: AppTextStyles.textXl(context).copyWith(
+                        color: colors.onBackground,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                     const SizedBox(height: 4),
                     Text(
                       '@johndoe · New York, USA',
-                      style: AppTextStyles.textMd(
-                        context,
-                      ).copyWith(color: colors.muted, fontWeight: FontWeight.w600),
+                      style: AppTextStyles.textMd(context).copyWith(
+                        color: colors.muted,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
                   ],
                 ),
@@ -74,13 +77,19 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 children: [
                   Text(
                     'My Vibe',
-                    style: AppTextStyles.textLg(context).copyWith(color: colors.onBackground, fontWeight: FontWeight.bold),
+                    style: AppTextStyles.textLg(context).copyWith(
+                      color: colors.onBackground,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                   TextButton(
                     onPressed: () {},
                     child: Text(
                       'Edit',
-                      style: AppTextStyles.textMd(context).copyWith(color: colors.primary, fontWeight: FontWeight.bold),
+                      style: AppTextStyles.textMd(context).copyWith(
+                        color: colors.primary,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                   ),
                 ],
@@ -130,7 +139,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         SizedBox(width: 6),
                         Text(
                           'Add Vibe',
-                          style: AppTextStyles.textSm(context).copyWith(color: colors.muted),
+                          style: AppTextStyles.textSm(
+                            context,
+                          ).copyWith(color: colors.muted),
                         ),
                       ],
                     ),
@@ -189,8 +200,94 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 title: 'Notifications',
                 color: Color(0xFF4B3263), // Purple icon bg
               ),
+              const SizedBox(height: 40),
 
-              const SizedBox(height: 40), // Bottom padding
+              // --- 6. Logout Button ---
+              GestureDetector(
+                onTap: () async {
+                  final confirm = await showDialog<bool>(
+                    context: context,
+                    builder: (context) {
+                      return AlertDialog(
+                        backgroundColor: const Color(0xFF1E0F22),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        title: const Text(
+                          "Log Out",
+                          style: TextStyle(color: Colors.white),
+                        ),
+                        content: const Text(
+                          "Are you sure you want to log out?",
+                          style: TextStyle(color: Colors.white70),
+                        ),
+                        actions: [
+                          TextButton(
+                            onPressed: () => Navigator.pop(context, false),
+                            child: const Text(
+                              "Cancel",
+                              style: TextStyle(color: Colors.grey),
+                            ),
+                          ),
+                          ElevatedButton(
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.pinkAccent,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(20),
+                              ),
+                            ),
+                            onPressed: () => Navigator.pop(context, true),
+                            child: const Text("Log Out", style: TextStyle(color: Colors.white)),
+
+                          ),
+                        ],
+                      );
+                    },
+                  );
+
+                  if (confirm == true) {
+                    await ServiceLocator.authRepository.logout();
+
+                    if (!mounted) return;
+
+                    Navigator.pushNamedAndRemoveUntil(
+                      context,
+                      '/login',
+                      (route) => false,
+                    );
+                  }
+                },
+                child: Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.symmetric(vertical: 18),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(40),
+                    border: Border.all(
+                      color: const Color(0xFFB3261E),
+                      width: 1.5,
+                    ),
+                    gradient: const LinearGradient(
+                      colors: [Color(0xFF3B0D1C), Color(0xFF2A0A15)],
+                    ),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: const [
+                      Icon(Icons.logout, color: Color(0xFFFF6B6B)),
+                      SizedBox(width: 10),
+                      Text(
+                        'Log Out',
+                        style: TextStyle(
+                          color: Color(0xFFFF6B6B),
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(height: 40),
             ],
           ),
         ),

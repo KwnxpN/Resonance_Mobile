@@ -9,7 +9,7 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
-  final emailCtrl = TextEditingController();
+  final identifierCtrl = TextEditingController();
   final passCtrl = TextEditingController();
   final auth = ServiceLocator.authRepository;
   final passFocus = FocusNode();
@@ -21,7 +21,7 @@ class _LoginScreenState extends State<LoginScreen> {
   Future<void> login() async {
     try {
       await auth.login(
-        email: emailCtrl.text,
+        identifier: identifierCtrl.text,
         password: passCtrl.text,
       );
 
@@ -33,7 +33,7 @@ class _LoginScreenState extends State<LoginScreen> {
       passCtrl.clear();
       passFocus.requestFocus();
 
-      setState(() => error = "Invalid email or password");
+      setState(() => error = "Invalid email/username or password");
     }
   }
 
@@ -82,7 +82,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
                 const SizedBox(height: 32),
 
-                _field(emailCtrl, "Email"),
+                _field(identifierCtrl, "Email/Username"),
 
                 const SizedBox(height: 16),
 
@@ -148,21 +148,28 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   Widget _pinkButton(String text, VoidCallback onTap) {
-    return SizedBox(
-      width: double.infinity,
-      height: 52,
-      child: ElevatedButton(
-        onPressed: onTap,
-        style: ElevatedButton.styleFrom(
-          backgroundColor: Colors.pinkAccent,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(30),
-          ),
+  return SizedBox(
+    width: double.infinity,
+    height: 52,
+    child: ElevatedButton(
+      onPressed: loading ? null : onTap,
+      style: ElevatedButton.styleFrom(
+        backgroundColor: Colors.pinkAccent,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(30),
         ),
-        child: Text(text,
-            style: const TextStyle(
-                fontWeight: FontWeight.bold, fontSize: 16, color: Colors.white)),
       ),
-    );
-  }
+      child: loading
+          ? const CircularProgressIndicator(color: Colors.white)
+          : Text(
+              text,
+              style: const TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 16,
+                color: Colors.white,
+              ),
+            ),
+    ),
+  );
+}
 }

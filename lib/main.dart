@@ -13,6 +13,8 @@ import './screens/home_screen.dart';
 import './screens/playlist_screen.dart';
 import './screens/profile_screen.dart';
 
+import './screens/auth_checker_screen.dart';
+
 // Allow all certificates (for development only)
 class MyHttpOverrides extends HttpOverrides {
   @override
@@ -45,7 +47,7 @@ class MyApp extends StatelessWidget {
         '/playlist': (context) => const PlaylistScreen(),
         '/profile': (context) => const ProfileScreen(),
       },
-      home: const MainScreen(),
+      home: const AuthCheckerScreen(),
     );
   }
 }

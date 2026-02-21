@@ -6,7 +6,9 @@ class RegisterScreen extends StatefulWidget {
 
   @override
   State<RegisterScreen> createState() => _RegisterScreenState();
+  
 }
+
 
 class _RegisterScreenState extends State<RegisterScreen> {
   final _formKey = GlobalKey<FormState>();
@@ -16,10 +18,31 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final nameCtrl = TextEditingController();
 
   final auth = ServiceLocator.authRepository;
+  
+  String? emailError;
+  String? usernameError;
 
   bool hidePass = true;
   String? error;
   bool loading = false;
+
+
+  @override
+void initState() {
+  super.initState();
+
+  emailCtrl.addListener(() {
+    if (emailError != null) {
+      setState(() => emailError = null);
+    }
+  });
+
+  nameCtrl.addListener(() {
+    if (usernameError != null) {
+      setState(() => usernameError = null);
+    }
+  });
+}
 
   Future<void> register() async {
     if (!_formKey.currentState!.validate()) return;
@@ -39,7 +62,21 @@ class _RegisterScreenState extends State<RegisterScreen> {
       if (!mounted) return;
       Navigator.pop(context);
     } catch (e) {
-      setState(() => error = "Register failed");
+      final msg = e.toString().replaceAll("Exception: ", "");
+
+      setState(() {
+        emailError = null;
+        usernameError = null;
+        error = null;
+
+        if (msg.contains("email")) {
+          emailError = msg;
+        } else if (msg.contains("username")) {
+          usernameError = msg;
+        } else {
+          error = msg;
+        }
+      });
     } finally {
       if (mounted) setState(() => loading = false);
     }
@@ -92,8 +129,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
                   if (error != null) ...[
                     const SizedBox(height: 12),
-                    Text(error!,
-                        style: const TextStyle(color: Colors.redAccent)),
+                    Text(
+                      error!,
+                      style: const TextStyle(color: Colors.redAccent),
+                    ),
                   ],
 
                   const SizedBox(height: 24),
@@ -115,7 +154,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
     return TextFormField(
       controller: nameCtrl,
       style: const TextStyle(color: Colors.white),
-      decoration: _inputDeco("Username"),
+      decoration: _inputDeco("Username").copyWith(errorText: usernameError),
       validator: (v) {
         if (v == null || v.trim().isEmpty) {
           return "Name is required";
@@ -133,7 +172,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
       controller: emailCtrl,
       style: const TextStyle(color: Colors.white),
       keyboardType: TextInputType.emailAddress,
-      decoration: _inputDeco("Email"),
+      decoration: _inputDeco("Email").copyWith(errorText: emailError),
       validator: (v) {
         if (v == null || v.isEmpty) return "Email required";
 

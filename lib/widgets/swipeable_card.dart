@@ -52,8 +52,6 @@ class _SwipeableCardState extends State<SwipeableCard> {
           angle: offset.dx * 0.002,
           child: SwipeCard(
             track: widget.track,
-            onLike: widget.onLike,
-            onDislike: widget.onDislike,
           ),
         ),
       ),

@@ -10,15 +10,15 @@ class MusicTasteAppBar extends StatelessWidget {
       child: Stack(
         alignment: Alignment.center,
         children: [
-          Align(
-            alignment: Alignment.centerLeft,
-            child: IconButton(
-              icon: const Icon(Icons.arrow_back, color: Colors.white),
-              onPressed: () {
-                Navigator.pop(context);
-              },
-            ),
-          ),
+          // Align(
+          //   alignment: Alignment.centerLeft,
+          //   child: IconButton(
+          //     icon: const Icon(Icons.arrow_back, color: Colors.white),
+          //     onPressed: () {
+          //       Navigator.pop(context);
+          //     },
+          //   ),
+          // ),
 
           const Text(
             'Music Taste',
