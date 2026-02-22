@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import '../models/track.dart';
-import '../widgets/swipe_card.dart';
-import '../widgets/music_taste_app_bar.dart';
 import '../widgets/swipeable_card.dart';
+import '../widgets/music_taste_app_bar.dart';
 import '../widgets/card_actions.dart';
 import '../core/di/service_locator.dart';
 import '../features/musics/models/music_model.dart';
@@ -18,9 +17,7 @@ class MusicTasteScreen extends StatefulWidget {
 class _MusicTasteScreenState extends State<MusicTasteScreen> {
   late Future<List<TrackModel>> futureTracks;
 
-  List<Track> tracks = [];
-  bool initialized = false;
-
+  int currentIndex = 0;
   Map<String, int> genreCounter = {};
 
   @override
@@ -29,7 +26,9 @@ class _MusicTasteScreenState extends State<MusicTasteScreen> {
     futureTracks = ServiceLocator.musicRepository.getRandomTracks();
   }
 
-  void handleSwipe(Track track, bool liked) async {
+  void handleSwipe(List<Track> tracks, bool liked) async {
+    final track = tracks[currentIndex];
+
     if (liked) {
       for (final genre in track.genre) {
         genreCounter[genre] = (genreCounter[genre] ?? 0) + 1;
@@ -37,10 +36,10 @@ class _MusicTasteScreenState extends State<MusicTasteScreen> {
     }
 
     setState(() {
-      tracks.removeLast();
+      currentIndex++;
     });
 
-    if (tracks.isEmpty) {
+    if (currentIndex >= tracks.length) {
       try {
         await ServiceLocator.musicRepository.saveUserTaste(genreCounter);
       } catch (_) {}
@@ -86,90 +85,106 @@ class _MusicTasteScreenState extends State<MusicTasteScreen> {
     return Scaffold(
       backgroundColor: const Color(0xFF120914),
       body: SafeArea(
-        child: Stack(
+        child: Column(
           children: [
-            /// 🔥 เนื้อหาหลัก
-            Positioned.fill(
-              child: Column(
-                children: [
-                  const MusicTasteAppBar(),
-                  Expanded(
-                    child: FutureBuilder<List<TrackModel>>(
-                      future: futureTracks,
-                      builder: (context, snapshot) {
-                        if (snapshot.connectionState ==
-                            ConnectionState.waiting) {
-                          return const Center(
-                            child: CircularProgressIndicator(),
-                          );
-                        }
+            const MusicTasteAppBar(),
 
-                        if (snapshot.hasError ||
-                            !snapshot.hasData ||
-                            snapshot.data!.isEmpty) {
-                          return const Center(
-                            child: Text(
-                              'Failed to load tracks',
-                              style: TextStyle(color: Colors.white),
+            Expanded(
+              child: FutureBuilder<List<TrackModel>>(
+                future: futureTracks,
+                builder: (context, snapshot) {
+                  // 🔄 Loading
+                  if (snapshot.connectionState ==
+                      ConnectionState.waiting) {
+                    return const Center(
+                      child: CircularProgressIndicator(),
+                    );
+                  }
+
+                  // ❌ Error
+                  if (snapshot.hasError ||
+                      !snapshot.hasData ||
+                      snapshot.data!.isEmpty) {
+                    return Center(
+                      child: Column(
+                        mainAxisAlignment:
+                            MainAxisAlignment.center,
+                        children: [
+                          const Icon(
+                            Icons.error_outline,
+                            color: Colors.redAccent,
+                            size: 60,
+                          ),
+                          const SizedBox(height: 16),
+                          const Text(
+                            'Failed to load tracks',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 16,
                             ),
-                          );
-                        }
-
-                        if (!initialized) {
-                          tracks = snapshot.data!
-                              .map(_convertModelToTrack)
-                              .toList();
-                          initialized = true;
-                        }
-
-                        if (tracks.isEmpty) {
-                          return const SizedBox();
-                        }
-
-                        return Stack(
-                          alignment: Alignment.center,
-                          children: tracks.asMap().entries.map((entry) {
-                            final index = entry.key;
-                            final track = entry.value;
-
-                            if (index == tracks.length - 1) {
-                              return SwipeableCard(
-                                track: track,
-                                onLike: () => handleSwipe(track, true),
-                                onDislike: () => handleSwipe(track, false),
+                          ),
+                          const SizedBox(height: 24),
+                          ElevatedButton(
+                            onPressed: () {
+                              Navigator.pushAndRemoveUntil(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) =>
+                                      const MainScreen(),
+                                ),
+                                (route) => false,
                               );
-                            }
-
-                            return Padding(
-                              padding: const EdgeInsets.only(top: 12),
-                              child: SwipeCard(
-                                track: track,
-                              ),
-                            );
-                          }).toList(),
-                        );
-                      },
-                    ),
-                  ),
-                ],
-              ),
-            ),
-
-            /// 🔥 ปุ่มลอยติดล่างจอ
-            Positioned(
-              left: 24,
-              right: 24,
-              bottom: 30,
-              child: CardActions(
-                onLike: () {
-                  if (tracks.isNotEmpty) {
-                    handleSwipe(tracks.last, true);
+                            },
+                            child: const Text('Go to Home'),
+                          ),
+                        ],
+                      ),
+                    );
                   }
-                },
-                onDislike: () {
-                  if (tracks.isNotEmpty) {
-                    handleSwipe(tracks.last, false);
+
+                  // ✅ Data Ready
+                  final tracks = snapshot.data!
+                      .map(_convertModelToTrack)
+                      .toList();
+
+                  if (currentIndex >= tracks.length) {
+                    return const SizedBox();
                   }
+
+                  return Stack(
+  alignment: Alignment.center,
+  children: [
+
+    /// การ์ดด้านหลัง
+    if (currentIndex + 1 < tracks.length)
+      Padding(
+        padding: const EdgeInsets.only(top: 12),
+        child: SwipeableCard(
+          track: tracks[currentIndex + 1],
+          onLike: () {},
+          onDislike: () {},
+        ),
+      ),
+
+    /// การ์ดด้านหน้า (ปัดได้)
+    SwipeableCard(
+      track: tracks[currentIndex],
+      onLike: () => handleSwipe(tracks, true),
+      onDislike: () => handleSwipe(tracks, false),
+    ),
+
+    /// ปุ่มลอย
+    Positioned(
+      left: 24,
+      right: 24,
+      bottom: 30,
+      child: CardActions(
+        onLike: () => handleSwipe(tracks, true),
+        onDislike: () => handleSwipe(tracks, false),
+      ),
+    ),
+  ],
+);
                 },
               ),
             ),
