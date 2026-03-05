@@ -8,18 +8,18 @@ class MusicRepository {
   Future<List<TrackModel>> getTracks() async {
     try {
       final response = await apiService.fetchTracks();
-      final data = response.data as List;
+      final data = response.data['data']['tracks'] as List;
 
       return data.map((e) => TrackModel.fromJson(e)).toList();
     } catch (e) {
-      throw Exception('Failed to load tracks');
+      throw Exception('Failed to load tracks: $e');
     }
   }
 
   Future<List<TrackModel>> getRandomTracks() async {
     try {
       final response = await apiService.fetchRandomTracks();
-      final data = response.data as List;
+      final data = response.data['data']['tracks'] as List;
       
       print('API Response (first item): ${data.isNotEmpty ? data.first : 'empty'}');
       

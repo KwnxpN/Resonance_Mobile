@@ -20,8 +20,8 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
-    _recommendedTracksFuture = ServiceLocator.musicRepository.getRandomTracks();
-    _trendingTracksFuture = ServiceLocator.musicRepository.getRandomTracks();
+    _recommendedTracksFuture = ServiceLocator.musicRepository.getTracks();
+    _trendingTracksFuture = ServiceLocator.musicRepository.getTracks();
   }
 
   @override

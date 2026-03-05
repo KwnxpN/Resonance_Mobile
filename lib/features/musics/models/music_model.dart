@@ -2,23 +2,19 @@ class TrackModel {
   final String id;
   final String name;
   final String imageUrl;
-  final List artists;
-  final List genres;
-  final String duration;
-  // final DateTime releaseDate;
-  // final DateTime createdAt;
-  // final DateTime updatedAt;
+  final String artist;
+  final String genre;
+  final String? duration;
+  final String? audioUrl;
 
   TrackModel({
     required this.id,
     required this.name,
     required this.imageUrl,
-    required this.artists,
-    required this.genres,
-    required this.duration,
-    // required this.releaseDate,
-    // required this.createdAt,
-    // required this.updatedAt,
+    required this.artist,
+    required this.genre,
+    this.duration,
+    this.audioUrl,
   });
 
   factory TrackModel.fromJson(Map<String, dynamic> json) {
@@ -26,12 +22,10 @@ class TrackModel {
       id: json['id'] as String,
       name: json['name'] as String,
       imageUrl: json['image_url'] as String,
-      artists: (json['artists'] as List),
-      genres: (json['genres'] as List),
-      duration: json['duration'] as String,
-      // releaseDate: DateTime.parse(json['release_date'] as String),
-      // createdAt: DateTime.parse(json['created_at'] as String),
-      // updatedAt: DateTime.parse(json['updated_at'] as String),
+      artist: json['artist'] as String,
+      genre: json['genre'] as String,
+      duration: json['duration'] as String?,
+      audioUrl: json['audio_url'] as String?,
     );
   }
 
@@ -40,12 +34,10 @@ class TrackModel {
       'id': id,
       'name': name,
       'image_url': imageUrl,
-      'artists': artists.map((artist) => artist.toJson()).toList(),
-      'genres': genres.map((genre) => genre.toJson()).toList(),
+      'artist': artist,
+      'genre': genre,
       'duration': duration,
-      // 'release_date': releaseDate.toIso8601String(),
-      // 'created_at': createdAt.toIso8601String(),
-      // 'updated_at': updatedAt.toIso8601String(),
+      'audio_url': audioUrl,
     };
   }
 }
