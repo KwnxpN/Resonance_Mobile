@@ -5,9 +5,9 @@ class MusicRepository {
   final MusicApiService apiService;
   MusicRepository(this.apiService);
 
-  Future<List<TrackModel>> getTracks() async {
+  Future<List<TrackModel>> getTracks({Map<String, dynamic>? query}) async {
     try {
-      final response = await apiService.fetchTracks();
+      final response = await apiService.fetchTracks(query: query);
       final data = response.data['data']['tracks'] as List;
 
       return data.map((e) => TrackModel.fromJson(e)).toList();
@@ -19,7 +19,7 @@ class MusicRepository {
   Future<List<TrackModel>> getRandomTracks() async {
     try {
       final response = await apiService.fetchRandomTracks();
-      final data = response.data['data']['tracks'] as List;
+      final data = response.data['data'] as List;
       
       print('API Response (first item): ${data.isNotEmpty ? data.first : 'empty'}');
       
