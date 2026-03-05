@@ -36,6 +36,15 @@ class MusicRepository {
     }
   }
 
+  Future<TrackModel> getTrackById(String id) async {
+    try {
+      final response = await apiService.fetchTrackById(id);
+      return TrackModel.fromJson(response.data['data'] as Map<String, dynamic>);
+    } catch (e) {
+      throw Exception('Failed to load track: $e');
+    }
+  }
+
   Future<void> saveUserTaste(Map<String, int> genreCounter) async {
     await apiService.postUserPreferences(genreCounter);
     

@@ -5,6 +5,7 @@ import '../themes/app_colors.dart';
 import '../themes/app_text_styles.dart';
 import '../widgets/artwork_image.dart';
 import '../core/di/service_locator.dart';
+import '../features/musics/models/music_model.dart';
 import 'dart:async';
 
 class MusicPlaybackScreen extends StatefulWidget {
@@ -50,24 +51,21 @@ class _MusicPlaybackScreenState extends State<MusicPlaybackScreen> {
     });
 
     try {
-      final track = _trackList[index];
+      final preview = _trackList[index] as TrackModel;
 
       setState(() {
-        _songName = track.name;
-        _artistName = track.artists.first;
-        _imageURL = track.imageUrl;
+        _songName = preview.name;
+        _artistName = preview.artist;
+        _imageURL = preview.imageUrl;
       });
 
-      final audioUrl = await ServiceLocator.soundcloudService.findTrackAudio(
-        track.name,
-        track.artists.first,
-      );
+      final track = await ServiceLocator.musicRepository.getTrackById(preview.id);
 
-      if (audioUrl == null) {
-        throw Exception('No audio found on SoundCloud');
+      if (track.audioUrl == null || track.audioUrl!.isEmpty) {
+        throw Exception('No audio URL for this track');
       }
 
-      await _player.setUrl(audioUrl);
+      await _player.setUrl(track.audioUrl!);
 
       if (mounted) {
         setState(() => _isLoading = false);
@@ -79,7 +77,6 @@ class _MusicPlaybackScreenState extends State<MusicPlaybackScreen> {
       if (!mounted) return;
 
       await _player.stop();
-      // _playNext();
 
       setState(() {
         _isLoading = false;
