@@ -23,7 +23,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Future<void> _loadProfile() async {
-    final user = await ServiceLocator.userRepository.getProfile();
+    final user = await ServiceLocator.userRepository.me();
     if (mounted) setState(() { _user = user; _loading = false; });
   }
 
