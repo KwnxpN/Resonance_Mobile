@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../core/di/service_locator.dart';
+import 'edit_profile_screen.dart';
 import '../features/users/models/user.dart';
 import '../themes/app_colors.dart';
 import '../themes/app_text_styles.dart';
@@ -121,7 +122,18 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       icon: Icons.edit,
                       title: 'Edit Profile',
                       color: const Color(0xFF911D58),
-                      onTap: () {},
+                      onTap: () async {
+                        if (_user == null) return;
+                        final updated = await Navigator.push<UserModel>(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => EditProfileScreen(user: _user!),
+                          ),
+                        );
+                        if (updated != null && mounted) {
+                          setState(() => _user = updated);
+                        }
+                      },
                     ),
 
                     // --- Logout ---
