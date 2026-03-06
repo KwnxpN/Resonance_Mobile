@@ -62,7 +62,9 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       Navigator.pop(context, updatedUser);
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Failed to update profile. Please try again.')),
+        const SnackBar(
+          content: Text('Failed to update profile. Please try again.'),
+        ),
       );
     }
   }
@@ -79,32 +81,10 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         elevation: 0,
         title: Text(
           'Edit Profile',
-          style: AppTextStyles.textLg(context).copyWith(color: colors.onBackground),
+          style: AppTextStyles.textLg(
+            context,
+          ).copyWith(color: colors.onBackground),
         ),
-        actions: [
-          _saving
-              ? const Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 16),
-                  child: Center(
-                    child: SizedBox(
-                      width: 20,
-                      height: 20,
-                      child: CircularProgressIndicator(strokeWidth: 2),
-                    ),
-                  ),
-                )
-              : TextButton(
-                  onPressed: _save,
-                  child: const Text(
-                    'Save',
-                    style: TextStyle(
-                      color: Color(0xFF911D58),
-                      fontWeight: FontWeight.bold,
-                      fontSize: 16,
-                    ),
-                  ),
-                ),
-        ],
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
@@ -122,7 +102,11 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                       ? NetworkImage(widget.user.avatarUrl)
                       : null,
                   child: widget.user.avatarUrl.isEmpty
-                      ? const Icon(Icons.person, size: 50, color: Colors.white54)
+                      ? const Icon(
+                          Icons.person,
+                          size: 50,
+                          color: Colors.white54,
+                        )
                       : null,
                 ),
               ),
@@ -135,8 +119,9 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
               _buildTextField(
                 controller: _displayNameCtrl,
                 hint: 'Enter your display name',
-                validator: (v) =>
-                    (v == null || v.trim().isEmpty) ? 'Display name cannot be empty' : null,
+                validator: (v) => (v == null || v.trim().isEmpty)
+                    ? 'Display name cannot be empty'
+                    : null,
               ),
 
               const SizedBox(height: 20),
@@ -151,6 +136,9 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
               ),
 
               const SizedBox(height: 40),
+
+              // Save Button
+              _saveButton('Save Changes', _saving ? null : _save),
             ],
           ),
         ),
@@ -185,7 +173,10 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         hintStyle: const TextStyle(color: Colors.white38, fontSize: 14),
         filled: true,
         fillColor: const Color(0xFF3A1C2E),
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 16,
+          vertical: 14,
+        ),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
           borderSide: BorderSide.none,
@@ -201,6 +192,30 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         focusedErrorBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
           borderSide: const BorderSide(color: Colors.redAccent, width: 1.5),
+        ),
+      ),
+    );
+  }
+
+  Widget _saveButton(String text, VoidCallback? onTap) {
+    return SizedBox(
+      width: double.infinity,
+      height: 52,
+      child: ElevatedButton(
+        onPressed: onTap,
+        style: ElevatedButton.styleFrom(
+          backgroundColor: Colors.pinkAccent,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(30),
+          ),
+        ),
+        child: Text(
+          text,
+          style: const TextStyle(
+            fontWeight: FontWeight.bold,
+            fontSize: 16,
+            color: Colors.white,
+          ),
         ),
       ),
     );
