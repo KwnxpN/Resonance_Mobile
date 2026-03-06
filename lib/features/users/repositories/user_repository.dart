@@ -9,7 +9,7 @@ class UserRepository {
   Future<UserModel?> getProfile() async {
     try {
       final res = await api.me();
-      return UserModel.fromJson(res.data['user']);
+      return UserModel.fromJson(res.data['profile']);
     } catch (e) {
       return null;
     }

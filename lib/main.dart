@@ -121,13 +121,6 @@ class _MainScreenState extends State<MainScreen> {
             Text("RESONANCE", style: AppTextStyles.textXl(context)),
           ],
         ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.logout, color: Colors.white70),
-            tooltip: 'Logout',
-            onPressed: _logout,
-          ),
-        ],
       ),
       body: _screens[_currentIndex],
       bottomNavigationBar: Container(
