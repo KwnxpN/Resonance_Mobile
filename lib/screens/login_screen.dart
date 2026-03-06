@@ -28,7 +28,7 @@ class _LoginScreenState extends State<LoginScreen> {
       if (!mounted) return;
 
       
-      Navigator.pushReplacementNamed(context, "/music_taste");
+      Navigator.pushReplacementNamed(context, "/home");
     } catch (e) {
       passCtrl.clear();
       passFocus.requestFocus();

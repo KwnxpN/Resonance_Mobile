@@ -33,7 +33,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
       await auth.register(
         email: emailCtrl.text.trim(),
         password: passCtrl.text,
-        name: nameCtrl.text.trim(),
+        displayName: nameCtrl.text.trim(),
       );
 
       if (!mounted) return;
@@ -92,8 +92,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
                   if (error != null) ...[
                     const SizedBox(height: 12),
-                    Text(error!,
-                        style: const TextStyle(color: Colors.redAccent)),
+                    Text(
+                      error!,
+                      style: const TextStyle(color: Colors.redAccent),
+                    ),
                   ],
 
                   const SizedBox(height: 24),
@@ -101,6 +103,16 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   _submitButton(
                     loading ? "Loading..." : "Start Listening",
                     loading ? null : register,
+                  ),
+
+                  const SizedBox(height: 20),
+
+                  TextButton(
+                    onPressed: () => Navigator.pushNamed(context, "/login"),
+                    child: const Text(
+                      "You in the club? Log in",
+                      style: TextStyle(color: Colors.pinkAccent),
+                    ),
                   ),
                 ],
               ),
