@@ -6,6 +6,7 @@ import '../widgets/swipeable_card.dart';
 import '../widgets/music_taste_result.dart';
 import '../core/di/service_locator.dart';
 import '../features/musics/models/music_model.dart';
+import '../widgets/card_actions.dart';
 
 class MusicTasteScreen extends StatefulWidget {
   const MusicTasteScreen({super.key});
@@ -97,7 +98,7 @@ class _MusicTasteScreenState extends State<MusicTasteScreen> {
   }
 
   bool isFetchingMore = false;
-  static const int fetchThreshold = 5;
+  static const int fetchThreshold = 10;
 
   Future<void> fetchMoreTracks() async {
     if (isFetchingMore) return;
@@ -108,7 +109,7 @@ class _MusicTasteScreenState extends State<MusicTasteScreen> {
       final newTracks = await ServiceLocator.musicRepository.getRandomTracks();
 
       setState(() {
-        tracks.addAll(newTracks.map((m) => _convertModelToTrack(m)));
+        tracks.insertAll(0, newTracks.map((m) => _convertModelToTrack(m)));
       });
     } catch (e) {
       debugPrint("Fetch more tracks failed: $e");
@@ -124,7 +125,7 @@ class _MusicTasteScreenState extends State<MusicTasteScreen> {
       body: SafeArea(
         child: Column(
           children: [
-            const MusicTasteAppBar(),
+            // const MusicTasteAppBar(),
             Expanded(
               child: FutureBuilder<List<TrackModel>>(
                 future: futureTracks,
@@ -167,32 +168,49 @@ class _MusicTasteScreenState extends State<MusicTasteScreen> {
                   }
 
                   return Stack(
-                    alignment: Alignment.center,
-                    children: tracks.asMap().entries.map((entry) {
-                      final index = entry.key;
-                      final track = entry.value;
+                    children: [
+                      Stack(
+                        alignment: Alignment.center,
+                        children: tracks.asMap().entries.map((entry) {
+                          final index = entry.key;
+                          final track = entry.value;
 
-                      if (index == tracks.length - 1) {
-                        return SwipeableCard(
-                          track: track,
+                          if (index == tracks.length - 1) {
+                            return SwipeableCard(
+                              track: track,
+                              onLike: () => handleSwipe(track, true),
+                              onDislike: () => handleSwipe(track, false),
+                            );
+                          }
+
+                          return Padding(
+                            padding: const EdgeInsets.only(top: 12),
+                            child: SwipeCard(
+                              track: track,
+                              onLike: () {},
+                              onDislike: () {},
+                            ),
+                          );
+                        }).toList(),
+                      ),
+
+                      /// ปุ่ม fixed ด้านล่าง
+                      Positioned(
+                        bottom: 30,
+                        left: 0,
+                        right: 0,
+                        child: CardActions(
                           onLike: () {
+                            final track = tracks.last;
                             handleSwipe(track, true);
                           },
                           onDislike: () {
+                            final track = tracks.last;
                             handleSwipe(track, false);
                           },
-                        );
-                      }
-
-                      return Padding(
-                        padding: const EdgeInsets.only(top: 12),
-                        child: SwipeCard(
-                          track: track,
-                          onLike: () {},
-                          onDislike: () {},
                         ),
-                      );
-                    }).toList(),
+                      ),
+                    ],
                   );
                 },
               ),

@@ -29,14 +29,26 @@ class SwipeCard extends StatelessWidget {
             colors: [Color(0xFF2B0F2F), Color(0xFF120914)],
           ),
         ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+        child: Stack(
           children: [
-            CardImage(track: track),
-            CardInfo(track: track),
-            const Spacer(),
-            CardActions(onLike: onLike, onDislike: onDislike),
-            const SizedBox(height: 20),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                CardImage(track: track),
+                CardInfo(track: track),
+                const SizedBox(height: 100), // เผื่อพื้นที่ให้ปุ่ม
+              ],
+            ),
+
+            // Positioned(
+            //   bottom: 20,
+            //   left: 0,
+            //   right: 0,
+            //   child: CardActions(
+            //     onLike: onLike,
+            //     onDislike: onDislike,
+            //   ),
+            // ),
           ],
         ),
       ),
