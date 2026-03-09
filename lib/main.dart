@@ -79,9 +79,7 @@ class _AuthGateState extends State<AuthGate> {
 
   @override
   Widget build(BuildContext context) {
-    return const Scaffold(
-      body: Center(child: CircularProgressIndicator()),
-    );
+    return const Scaffold(body: Center(child: CircularProgressIndicator()));
   }
 }
 
@@ -153,8 +151,8 @@ class _MainScreenState extends State<MainScreen> {
               items: const [
                 BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
                 BottomNavigationBarItem(
-                  icon: Icon(Icons.explore),
-                  label: 'Discover',
+                  icon: Icon(Icons.library_music),
+                  label: 'Swipes',
                 ),
                 BottomNavigationBarItem(
                   icon: Icon(Icons.group),
