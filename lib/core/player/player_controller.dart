@@ -21,7 +21,7 @@ class PlayerController extends ChangeNotifier {
 
   PlayerController(this._musicRepository) {
     _completionSubscription = player.playerStateStream.listen((state) {
-      if (state.processingState == ProcessingState.completed) {
+      if (state.processingState == ProcessingState.completed && !isLoading) {
         playNext();
       }
     });
@@ -36,9 +36,13 @@ class PlayerController extends ChangeNotifier {
     await playTrackAtIndex(index);
   }
 
+  bool _isChangingTrack = false;
+
   Future<void> playTrackAtIndex(int index) async {
     if (index < 0 || index >= trackList.length) return;
+    if (_isChangingTrack) return;
 
+    _isChangingTrack = true;
     currentIndex = index;
     isLoading = true;
     hasTrack = true;
@@ -58,11 +62,13 @@ class PlayerController extends ChangeNotifier {
 
       await player.setUrl(track.audioUrl!);
       isLoading = false;
+      _isChangingTrack = false;
       notifyListeners();
       await player.play();
     } catch (e) {
       debugPrint('PlayerController: failed to play track: $e');
       isLoading = false;
+      _isChangingTrack = false;
       songName = 'Error loading song';
       artistName = '';
       imageUrl = '';
@@ -81,6 +87,8 @@ class PlayerController extends ChangeNotifier {
   void playPrevious() {
     if (currentIndex > 0) {
       playTrackAtIndex(currentIndex - 1);
+    } else {
+      playTrackAtIndex(trackList.length - 1);
     }
   }
 

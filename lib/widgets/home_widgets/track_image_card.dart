@@ -1,32 +1,30 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import '../../features/musics/models/music_model.dart';
 
-class TrackImageCard extends StatefulWidget {
+class TrackImageCard extends StatelessWidget {
   final TrackModel? track;
   final bool isPlaying;
   final VoidCallback? onTap;
 
-  const TrackImageCard({ super.key, this.track, this.isPlaying = false, this.onTap });
+  static const _overlayColor = Color(0x99000000); // Colors.black @ 60%
 
-  @override
-  State<TrackImageCard> createState() => _TrackImageCardState();
-}
+  const TrackImageCard({super.key, this.track, this.isPlaying = false, this.onTap});
 
-class _TrackImageCardState extends State<TrackImageCard> {
   @override
   Widget build(BuildContext context) {
-    final track = widget.track;
+    final track = this.track;
 
     return AspectRatio(
       aspectRatio: 1 / 1,
       child: Material(
         color: Colors.transparent,
         child: InkWell(
-          onTap: widget.onTap,
+          onTap: onTap,
           borderRadius: BorderRadius.circular(16),
           child: Ink(
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(16),
+            decoration: const BoxDecoration(
+              borderRadius: BorderRadius.all(Radius.circular(16)),
             ),
             child: ClipRRect(
               borderRadius: BorderRadius.circular(16),
@@ -35,17 +33,31 @@ class _TrackImageCardState extends State<TrackImageCard> {
                 children: [
                   // Background image
                   if (track != null && track.imageUrl.isNotEmpty)
-                    Image.network(
-                      track.imageUrl,
+                    CachedNetworkImage(
+                      imageUrl: track.imageUrl,
                       fit: BoxFit.cover,
+                      fadeInDuration: const Duration(milliseconds: 200),
+                      placeholder: (_, __) => const ColoredBox(
+                        color: Color(0xFF424242),
+                        child: Center(
+                          child: Icon(Icons.music_note,
+                              color: Colors.white54, size: 40),
+                        ),
+                      ),
+                      errorWidget: (_, __, ___) => const ColoredBox(
+                        color: Color(0xFF424242),
+                        child: Center(
+                          child: Icon(Icons.broken_image,
+                              color: Colors.white54, size: 40),
+                        ),
+                      ),
                     )
                   else
-                    Container(
-                      color: Colors.grey[800],
-                      child: const Icon(
-                        Icons.music_note,
-                        color: Colors.white54,
-                        size: 40,
+                    const ColoredBox(
+                      color: Color(0xFF424242),
+                      child: Center(
+                        child: Icon(Icons.music_note,
+                            color: Colors.white54, size: 40),
                       ),
                     ),
 
@@ -54,17 +66,14 @@ class _TrackImageCardState extends State<TrackImageCard> {
                     left: 12,
                     right: 12,
                     bottom: 12,
-                    child: Align(
-                      alignment: Alignment.bottomLeft,
-                      child: Container(
+                    child: DecoratedBox(
+                      decoration: const BoxDecoration(
+                        color: _overlayColor,
+                        borderRadius: BorderRadius.all(Radius.circular(8)),
+                      ),
+                      child: Padding(
                         padding: const EdgeInsets.symmetric(
-                          horizontal: 8,
-                          vertical: 4,
-                        ),
-                        decoration: BoxDecoration(
-                          color: Colors.black.withValues(alpha: 0.6),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
+                            horizontal: 8, vertical: 4),
                         child: Text(
                           track?.name ?? 'Unknown Track',
                           maxLines: 1,
