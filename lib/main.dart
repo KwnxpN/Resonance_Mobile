@@ -94,6 +94,7 @@ class MainScreen extends StatefulWidget {
 class _MainScreenState extends State<MainScreen> {
   int _currentIndex = 0;
 
+  final homeKey = GlobalKey<State<HomeScreen>>();
   final List<GlobalKey<NavigatorState>> _navigatorKeys = [
     GlobalKey<NavigatorState>(),
     GlobalKey<NavigatorState>(),
@@ -101,8 +102,8 @@ class _MainScreenState extends State<MainScreen> {
     GlobalKey<NavigatorState>(),
   ];
 
-  static const List<Widget> _screens = [
-    HomeScreen(),
+  late final List<Widget> _screens = [
+    HomeScreen(key: homeKey),
     MusicTasteScreen(),
     MatchScreen(),
     ProfileScreen(),
@@ -140,9 +141,8 @@ class _MainScreenState extends State<MainScreen> {
                   _screens.length,
                   (i) => Navigator(
                     key: _navigatorKeys[i],
-                    onGenerateRoute: (_) => MaterialPageRoute(
-                      builder: (_) => _screens[i],
-                    ),
+                    onGenerateRoute: (_) =>
+                        MaterialPageRoute(builder: (_) => _screens[i]),
                   ),
                 ),
               ),
@@ -162,7 +162,13 @@ class _MainScreenState extends State<MainScreen> {
             height: 80,
             child: BottomNavigationBar(
               currentIndex: _currentIndex,
-              onTap: (index) => setState(() => _currentIndex = index),
+              onTap: (index) {
+                if (index == 0) {
+                  (homeKey.currentState as dynamic)?.fetchRecommendedPlaylist();
+                }
+
+                setState(() => _currentIndex = index);
+              },
 
               type: BottomNavigationBarType.fixed,
               backgroundColor: colors.background,

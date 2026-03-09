@@ -35,7 +35,7 @@ class SwipeCard extends StatelessWidget {
               children: [
                 CardImage(track: track),
                 CardInfo(track: track),
-                const SizedBox(height: 100)
+                const SizedBox(height: 50)
               ],
             ),
           ],

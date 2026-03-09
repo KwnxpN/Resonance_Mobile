@@ -16,8 +16,8 @@ class MusicTasteScreen extends StatefulWidget {
 
 class _MusicTasteScreenState extends State<MusicTasteScreen> {
   GlobalKey<SwipeableCardState> swipeKey = GlobalKey();
-
   late Future<List<TrackModel>> futureTracks;
+
 
   List<Track> tracks = [];
   bool initialized = false;
@@ -131,7 +131,9 @@ class _MusicTasteScreenState extends State<MusicTasteScreen> {
             if (tracks.isEmpty) return _buildLoading();
 
             return Stack(
+              clipBehavior: Clip.none,
               children: [
+                
                 TrackCardStack(
                   tracks: tracks,
                   swipeKey: swipeKey,

@@ -23,7 +23,14 @@ class PlaylistRepository {
   Future<PlaylistModel> getRecommendedPlaylist(String userId) async {
     try {
       final res = await api.getRecommendedPlaylist(userId);
-      return PlaylistModel.fromJson(res.data['data']);
+
+      final body = res.data as Map<String, dynamic>;
+
+      if (body['success'] == false || body['data'] == null) {
+        return PlaylistModel(id: '', userId: '', name: '', tracks: []);
+      }
+
+      return PlaylistModel.fromJson(body['data']);
     } catch (e) {
       return PlaylistModel(id: '', userId: '', name: '', tracks: []);
     }
@@ -39,7 +46,9 @@ class PlaylistRepository {
   }
 
   Future<AddTrackResult> addTrackToPlaylist(
-      String playlistId, String trackId) async {
+    String playlistId,
+    String trackId,
+  ) async {
     try {
       final res = await api.addTrackToPlaylist(playlistId, trackId);
       final body = res.data as Map<String, dynamic>?;
@@ -61,7 +70,10 @@ class PlaylistRepository {
     }
   }
 
-  Future<bool> removeTrackFromPlaylist(String playlistId, String trackId) async {
+  Future<bool> removeTrackFromPlaylist(
+    String playlistId,
+    String trackId,
+  ) async {
     try {
       await api.removeTrackFromPlaylist(playlistId, trackId);
       return true;
