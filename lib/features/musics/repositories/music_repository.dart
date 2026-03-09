@@ -19,7 +19,7 @@ class MusicRepository {
   Future<List<TrackModel>> getRandomTracks() async {
     try {
       final response = await apiService.fetchRandomTracks();
-      final data = response.data as List;
+      final data = response.data["data"] as List;
       
       print('API Response (first item): ${data.isNotEmpty ? data.first : 'empty'}');
       
