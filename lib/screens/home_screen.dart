@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import '../core/di/service_locator.dart';
 import '../features/musics/models/music_model.dart';
-import '../widgets/home_widgets/track_image_card.dart';
-import '../widgets/song_card.dart';
-import './music_playback_screen.dart';
+import '../features/playlists/models/playlist.dart';
+import '../widgets/home_widgets/recommended_section.dart';
+import '../widgets/home_widgets/trending_section.dart';
+import '../widgets/home_widgets/playlist_section.dart';
+import '../widgets/home_widgets/recommended_playlist_section.dart';
+import '../widgets/home_widgets/create_playlist_sheet.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -13,155 +16,117 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  // Future for fetching tracks from API
   late Future<List<TrackModel>> _recommendedTracksFuture;
   late Future<List<TrackModel>> _trendingTracksFuture;
+  late Future<List<PlaylistModel>> _playlistsFuture;
+  late Future<PlaylistModel> _recommendedPlaylistsFuture;
+  late final Future<dynamic> _userFuture;
 
   @override
   void initState() {
     super.initState();
-    _recommendedTracksFuture = ServiceLocator.musicRepository.getTracks(query: {'limit': 30});
-    _trendingTracksFuture = ServiceLocator.musicRepository.getRandomTracks();
+    _userFuture = ServiceLocator.userRepository.me();
+    _recommendedTracksFuture =
+        ServiceLocator.musicRepository.getTracks(query: {'limit': 30});
+    _trendingTracksFuture =
+        ServiceLocator.musicRepository.getRandomTracks();
+    _playlistsFuture = _fetchPlaylists();
+    _recommendedPlaylistsFuture = _fetchRecommendedPlaylist();
+  }
+
+  Future<List<PlaylistModel>> _fetchPlaylists() async {
+    final user = await _userFuture;
+    if (user == null) return [];
+    return ServiceLocator.playlistRepository.getPersonalPlaylists(user.userId);
+  }
+
+  Future<PlaylistModel> _fetchRecommendedPlaylist() async {
+    final user = await _userFuture;
+    if (user == null) return PlaylistModel(id: '', userId: '', name: '', tracks: []);
+    return ServiceLocator.playlistRepository
+        .getRecommendedPlaylist(user.userId);
+  }
+
+  void _retryRecommended() {
+    setState(() {
+      _recommendedTracksFuture =
+          ServiceLocator.musicRepository.getTracks(query: {'limit': 30});
+    });
+  }
+
+  void _retryTrending() {
+    setState(() {
+      _trendingTracksFuture =
+          ServiceLocator.musicRepository.getRandomTracks();
+    });
+  }
+
+  void _retryPlaylists() {
+    setState(() {
+      _playlistsFuture = _fetchPlaylists();
+    });
+  }
+
+  void _retryRecommendedPlaylists() {
+    setState(() {
+      _recommendedPlaylistsFuture = _fetchRecommendedPlaylist();
+    });
+  }
+
+  Future<void> _showCreatePlaylistSheet() async {
+    final name = await showModalBottomSheet<String>(
+      context: context,
+      isScrollControlled: true,
+      builder: (_) => const CreatePlaylistSheet(),
+    );
+    if (name == null || name.trim().isEmpty) return;
+    final user = await _userFuture;
+    if (user == null) return;
+    final success = await ServiceLocator.playlistRepository
+        .createPlaylist(user.userId, name.trim());
+    if (success && mounted) _retryPlaylists();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: FutureBuilder<List<List<TrackModel>>>(
-        future: Future.wait([_recommendedTracksFuture, _trendingTracksFuture]),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting){
-            return const Center(child: CircularProgressIndicator());
-          }
-          
-          else if (snapshot.hasError) {
-            return Center(child: Text('Error: ${snapshot.error}'));
-          }
-          
-          else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-            return const Center(child: Text('No tracks available'));
-          }
-
-          final recommendedTracks = snapshot.data![0];
-          final trendingTracks = snapshot.data![1];
-          
-          // Paginated 3x3 grids (9 items per page) using a PageView
-          final pageSize = 9;
-          final pageCount = (recommendedTracks.length / pageSize).ceil();
-          
-          // Carousel section - 3 songs per page
-          final carouselPageSize = 3;
-          final carouselPageCount = (trendingTracks.length / carouselPageSize).ceil();
-          
-          return ListView(
-            children: [
-              const SizedBox(height: 16),
-              const Padding(
-                padding: EdgeInsets.symmetric(horizontal: 16),
-                child: Text(
-                  'Recommend for you',
-                  style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
-              const SizedBox(height: 8),
-              SizedBox(
-                height: 400,
-                child: PageView.builder(
-                  itemCount: pageCount,
-                  itemBuilder: (context, pageIndex) {
-                    final startIndex = pageIndex * pageSize;
-                    final endIndex = (startIndex + pageSize).clamp(0, recommendedTracks.length);
-                    final pageItems = recommendedTracks.sublist(startIndex, endIndex);
-
-                    return GridView.builder(
-                      padding: const EdgeInsets.all(16),
-                      physics: const NeverScrollableScrollPhysics(),
-                      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                        crossAxisCount: 3,
-                        crossAxisSpacing: 16,
-                        mainAxisSpacing: 16,
-                        childAspectRatio: 1 / 1,
-                      ),
-                      itemCount: pageItems.length,
-                      itemBuilder: (context, index) {
-                        final globalIndex = pageIndex * pageSize + index;
-                        return TrackImageCard(
-                          track: pageItems[index],
-                          onTap: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => MusicPlaybackScreen(
-                                  tracks: recommendedTracks,
-                                  initialIndex: globalIndex,
-                                ),
-                              ),
-                            );
-                          },
-                        );
-                      },
-                    );
-                  },
-                ),
-              ),
-              const SizedBox(height: 24),
-              const Padding(
-                padding: EdgeInsets.symmetric(horizontal: 16),
-                child: Text(
-                  'Trending Now',
-                  style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
-              const SizedBox(height: 8),
-              SizedBox(
-                height: 240,
-                child: PageView.builder(
-                  itemCount: carouselPageCount,
-                  itemBuilder: (context, pageIndex) {
-                    final startIndex = pageIndex * carouselPageSize;
-                    final endIndex = (startIndex + carouselPageSize).clamp(0, trendingTracks.length);
-                    final pageItems = trendingTracks.sublist(startIndex, endIndex);
-
-                    return Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
-                      child: Column(
-                        children: pageItems.asMap().entries.map((entry) {
-                          final localIndex = entry.key;
-                          final track = entry.value;
-                          final globalIndex = pageIndex * carouselPageSize + localIndex;
-                          return SongCard(
-                            track: track,
-                            onTap: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => MusicPlaybackScreen(
-                                    tracks: trendingTracks,
-                                    initialIndex: globalIndex,
-                                  ),
-                                ),
-                              );
-                            },
-                            onMoreTap: () {
-                              print('More options for: ${track.name}');
-                            },
-                          );
-                        }).toList(),
-                      ),
-                    );
-                  },
-                ),
-              ),
-              const SizedBox(height: 24),
-            ],
-          );
-        },
+      body: ListView(
+        children: [
+          const SizedBox(height: 16),
+          RepaintBoundary(
+            child: RecommendedSection(
+              future: _recommendedTracksFuture,
+              onRetry: _retryRecommended,
+              onReturn: _retryPlaylists,
+            ),
+          ),
+          const SizedBox(height: 24),
+          RepaintBoundary(
+            child: TrendingSection(
+              future: _trendingTracksFuture,
+              onRetry: _retryTrending,
+              onReturn: _retryPlaylists,
+            ),
+          ),
+          const SizedBox(height: 24),
+          RepaintBoundary(
+            child: RecommendedPlaylistSection(
+              future: _recommendedPlaylistsFuture,
+              onRetry: _retryRecommendedPlaylists,
+              onReturn: _retryRecommendedPlaylists,
+            ),
+          ),
+          const SizedBox(height: 24),
+          RepaintBoundary(
+            child: PlaylistSection(
+              future: _playlistsFuture,
+              onRetry: _retryPlaylists,
+              onReturn: _retryPlaylists,
+              onCreate: _showCreatePlaylistSheet,
+            ),
+          ),
+          const SizedBox(height: 24),
+        ],
       ),
     );
   }

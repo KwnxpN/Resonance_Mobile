@@ -8,11 +8,10 @@ import './themes/app_theme.dart';
 import './themes/app_colors.dart';
 import './themes/app_text_styles.dart';
 
-import './screens/match_screen.dart';
 import './screens/register_screen.dart';
 import './screens/home_screen.dart';
-import './screens/playlist_screen.dart';
 import './screens/profile_screen.dart';
+import './screens/match_screen.dart';
 import './widgets/mini_player.dart';
 
 // Allow all certificates (for development only)
@@ -46,8 +45,7 @@ class MyApp extends StatelessWidget {
       routes: {
         '/login': (context) => const LoginScreen(),
         '/register': (context) => const RegisterScreen(),
-        '/music_taste': (context) => const MusicTasteScreen(),
-        '/playlist': (context) => const PlaylistScreen(),
+        '/music_taste': (context) => const MatchScreen(),
         '/profile': (context) => const ProfileScreen(),
         '/home': (context) => const MainScreen(),
       },
@@ -96,11 +94,18 @@ class MainScreen extends StatefulWidget {
 class _MainScreenState extends State<MainScreen> {
   int _currentIndex = 0;
 
-  late final List<Widget> _screens = [
-    const HomeScreen(),
-    const MusicTasteScreen(),
-    const MatchScreen(),
-    const ProfileScreen(),
+  final List<GlobalKey<NavigatorState>> _navigatorKeys = [
+    GlobalKey<NavigatorState>(),
+    GlobalKey<NavigatorState>(),
+    GlobalKey<NavigatorState>(),
+    GlobalKey<NavigatorState>(),
+  ];
+
+  static const List<Widget> _screens = [
+    HomeScreen(),
+    MusicTasteScreen(),
+    MatchScreen(),
+    ProfileScreen(),
   ];
 
   @override
@@ -119,11 +124,32 @@ class _MainScreenState extends State<MainScreen> {
           ],
         ),
       ),
-      body: Column(
-        children: [
-          Expanded(child: _screens[_currentIndex]),
-          const MiniPlayer(),
-        ],
+      body: PopScope(
+        canPop: false,
+        onPopInvokedWithResult: (didPop, _) {
+          if (!didPop) {
+            _navigatorKeys[_currentIndex].currentState?.maybePop();
+          }
+        },
+        child: Column(
+          children: [
+            Expanded(
+              child: IndexedStack(
+                index: _currentIndex,
+                children: List.generate(
+                  _screens.length,
+                  (i) => Navigator(
+                    key: _navigatorKeys[i],
+                    onGenerateRoute: (_) => MaterialPageRoute(
+                      builder: (_) => _screens[i],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+            const MiniPlayer(),
+          ],
+        ),
       ),
       bottomNavigationBar: Container(
         decoration: BoxDecoration(

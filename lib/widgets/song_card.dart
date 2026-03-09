@@ -7,14 +7,16 @@ class SongCard extends StatelessWidget {
   final TrackModel track;
   final bool isPlaying;
   final VoidCallback? onTap;
-  final VoidCallback? onMoreTap;
+  final List<PopupMenuEntry<String>>? menuItems;
+  final void Function(String)? onMenuSelected;
 
   const SongCard({
     super.key,
     required this.track,
     this.isPlaying = false,
     this.onTap,
-    this.onMoreTap,
+    this.menuItems,
+    this.onMenuSelected,
   });
 
   String get _artistsText {
@@ -110,9 +112,12 @@ class SongCard extends StatelessWidget {
               ),
 
               // More button
-              GestureDetector(
-                onTap: onMoreTap,
-                child: Icon(Icons.more_vert, color: colors.muted, size: 20),
+              PopupMenuButton<String>(
+                padding: EdgeInsets.zero,
+                icon: Icon(Icons.more_vert, color: colors.muted, size: 20),
+                enabled: menuItems != null && menuItems!.isNotEmpty,
+                itemBuilder: (_) => menuItems ?? [],
+                onSelected: onMenuSelected,
               ),
             ],
           ),

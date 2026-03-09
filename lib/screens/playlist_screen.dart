@@ -1,35 +1,88 @@
 import 'package:flutter/material.dart';
 import '../core/di/service_locator.dart';
 import '../features/musics/models/music_model.dart';
-import '../models/mock_data.dart';
 import '../themes/app_colors.dart';
 import '../themes/app_text_styles.dart';
 import '../widgets/playlist_hero.dart';
 import '../widgets/song_card.dart';
+import 'music_playback_screen.dart';
 
 class PlaylistScreen extends StatefulWidget {
-  const PlaylistScreen({super.key});
+  const PlaylistScreen({
+    super.key,
+    required this.playlistId,
+    required this.playlistName,
+    required this.tracks,
+    this.isRecommended = false,
+  });
+
+  final String playlistId;
+  final String playlistName;
+  final List<String> tracks;
+  final bool isRecommended;
 
   @override
   State<PlaylistScreen> createState() => _PlaylistScreenState();
 }
 
 class _PlaylistScreenState extends State<PlaylistScreen> {
-  // Using mock data for playlist info
-  final Playlist _playlist = mockPlaylist;
-
   // Future for fetching tracks from API
   late Future<List<TrackModel>> _tracksFuture;
+  late List<String> _trackIds;
 
   @override
   void initState() {
     super.initState();
-    _tracksFuture = ServiceLocator.musicRepository.getRandomTracks();
+    _trackIds = List<String>.from(widget.tracks);
+    _tracksFuture = _fetchTracks();
+  }
+
+  Future<List<TrackModel>> _fetchTracks() async {
+    const batchSize = 5;
+    final results = <TrackModel>[];
+    for (var i = 0; i < _trackIds.length; i += batchSize) {
+      final batch = _trackIds.sublist(
+        i,
+        (i + batchSize).clamp(0, _trackIds.length),
+      );
+      final batchResults = await Future.wait(
+        batch.map((id) => ServiceLocator.musicRepository.getTrackById(id)),
+      );
+      results.addAll(batchResults);
+    }
+    return results;
+  }
+
+  Future<void> _removeTrack(String trackId) async {
+    final success = await ServiceLocator.playlistRepository
+        .removeTrackFromPlaylist(widget.playlistId, trackId);
+    if (success) {
+      setState(() => _trackIds.remove(trackId));
+      _refreshTracks();
+    }
+  }
+
+  String _totalDuration(List<TrackModel> tracks) {
+    int totalSeconds = 0;
+    for (final track in tracks) {
+      if (track.duration == null) continue;
+      final parts = track.duration!.split(':');
+      if (parts.length == 2) {
+        totalSeconds +=
+            (int.tryParse(parts[0]) ?? 0) * 60 + (int.tryParse(parts[1]) ?? 0);
+      }
+    }
+    final h = totalSeconds ~/ 3600;
+    final m = (totalSeconds % 3600) ~/ 60;
+    final s = totalSeconds % 60;
+    if (h > 0) return '${h}h ${m}m';
+    if (m > 0) return '${m}m ${s.toString().padLeft(2, '0')}s';
+    return '${s}s';
   }
 
   void _refreshTracks() {
     setState(() {
-      _tracksFuture = ServiceLocator.musicRepository.getRandomTracks();
+      _tracksFuture = _fetchTracks();
     });
   }
 
@@ -47,16 +100,10 @@ class _PlaylistScreenState extends State<PlaylistScreen> {
               // Hero section
               SliverToBoxAdapter(
                 child: PlaylistHero(
-                  playlist: _playlist,
-                  onLikeTap: () {
-                    // Handle like
-                  },
-                  onDownloadTap: () {
-                    // Handle download
-                  },
-                  onShuffleTap: () {
-                    _refreshTracks();
-                  },
+                  title: widget.playlistName,
+                  duration: snapshot.hasData
+                      ? _totalDuration(snapshot.data!)
+                      : null,
                 ),
               ),
 
@@ -116,10 +163,27 @@ class _PlaylistScreenState extends State<PlaylistScreen> {
                     return SongCard(
                       track: track,
                       onTap: () {
-                        // Handle track tap
+                        Navigator.of(context, rootNavigator: true).push(
+                          MaterialPageRoute(
+                            builder: (_) => MusicPlaybackScreen(
+                              tracks: snapshot.data!,
+                              initialIndex: index,
+                            ),
+                          ),
+                        );
                       },
-                      onMoreTap: () {
-                        // Handle more options
+                      menuItems: widget.isRecommended
+                          ? []
+                          : [
+                              PopupMenuItem(
+                                value: 'remove',
+                                child: Text('Remove from Playlist'),
+                              ),
+                            ],
+                      onMenuSelected: (value) {
+                        if (value == 'remove') {
+                          _removeTrack(track.id);
+                        }
                       },
                     );
                   }, childCount: snapshot.data!.length),

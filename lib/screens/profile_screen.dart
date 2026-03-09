@@ -31,7 +31,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Future<void> _logout() async {
     await ServiceLocator.authRepository.logout();
     if (!mounted) return;
-    Navigator.pushNamedAndRemoveUntil(context, '/login', (_) => false);
+    Navigator.of(context, rootNavigator: true)
+        .pushNamedAndRemoveUntil('/login', (_) => false);
   }
 
   @override
