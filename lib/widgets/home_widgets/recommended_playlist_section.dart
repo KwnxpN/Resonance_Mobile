@@ -255,7 +255,7 @@ class RecommendedPlaylistSection extends StatelessWidget {
           ),
         ],
       ),
-      child: PlaylistCard(playlist: playlist, onReturn: onReturn),
+      child: PlaylistCard(playlist: playlist, onReturn: onReturn, isRecommended: true),
     );
   }
 }

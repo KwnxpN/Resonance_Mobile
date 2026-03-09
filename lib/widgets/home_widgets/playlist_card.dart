@@ -7,8 +7,14 @@ import '../../themes/app_text_styles.dart';
 class PlaylistCard extends StatelessWidget {
   final PlaylistModel playlist;
   final VoidCallback? onReturn;
+  final bool isRecommended;
 
-  const PlaylistCard({super.key, required this.playlist, this.onReturn});
+  const PlaylistCard({
+    super.key,
+    required this.playlist,
+    this.onReturn,
+    this.isRecommended = false,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -23,6 +29,7 @@ class PlaylistCard extends StatelessWidget {
               playlistId: playlist.id,
               playlistName: playlist.name,
               tracks: playlist.tracks,
+              isRecommended: isRecommended,
             ),
           ),
         ).then((_) => onReturn?.call());

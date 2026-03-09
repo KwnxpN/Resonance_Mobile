@@ -13,11 +13,13 @@ class PlaylistScreen extends StatefulWidget {
     required this.playlistId,
     required this.playlistName,
     required this.tracks,
+    this.isRecommended = false,
   });
 
   final String playlistId;
   final String playlistName;
   final List<String> tracks;
+  final bool isRecommended;
 
   @override
   State<PlaylistScreen> createState() => _PlaylistScreenState();
@@ -170,12 +172,14 @@ class _PlaylistScreenState extends State<PlaylistScreen> {
                           ),
                         );
                       },
-                      menuItems: [
-                        PopupMenuItem(
-                          value: 'remove',
-                          child: Text('Remove from Playlist'),
-                        ),
-                      ],
+                      menuItems: widget.isRecommended
+                          ? []
+                          : [
+                              PopupMenuItem(
+                                value: 'remove',
+                                child: Text('Remove from Playlist'),
+                              ),
+                            ],
                       onMenuSelected: (value) {
                         if (value == 'remove') {
                           _removeTrack(track.id);
