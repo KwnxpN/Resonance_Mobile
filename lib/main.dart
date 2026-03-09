@@ -7,7 +7,7 @@ import './themes/app_theme.dart';
 import './themes/app_colors.dart';
 import './themes/app_text_styles.dart';
 
-import './screens/music_taste_screen.dart';
+import './screens/match_screen.dart';
 import './screens/register_screen.dart';
 import './screens/home_screen.dart';
 import './screens/playlist_screen.dart';
@@ -45,7 +45,7 @@ class MyApp extends StatelessWidget {
       routes: {
         '/login': (context) => const LoginScreen(),
         '/register': (context) => const RegisterScreen(),
-        '/music_taste': (context) => const MusicTasteScreen(),
+        '/music_taste': (context) => const MatchScreen(),
         '/playlist': (context) => const PlaylistScreen(),
         '/profile': (context) => const ProfileScreen(),
         '/home': (context) => const MainScreen(),
@@ -95,10 +95,16 @@ class MainScreen extends StatefulWidget {
 class _MainScreenState extends State<MainScreen> {
   int _currentIndex = 0;
 
+  Future<void> _logout() async {
+    await ServiceLocator.authRepository.logout();
+    if (!mounted) return;
+    Navigator.pushNamedAndRemoveUntil(context, '/login', (_) => false);
+  }
+
   late final List<Widget> _screens = [
     const HomeScreen(),
     const PlaylistScreen(),
-    const MusicTasteScreen(),
+    const MatchScreen(),
     const ProfileScreen(),
   ];
 
