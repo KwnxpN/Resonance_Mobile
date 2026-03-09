@@ -1,11 +1,10 @@
 import 'package:flutter/material.dart';
 import '../models/track.dart';
-import '../widgets/swipe_card.dart';
-import '../widgets/swipeable_card.dart';
-import '../widgets/music_taste_result.dart';
+import '../widgets/music_taste_widgets/card/swipeable_card.dart';
 import '../core/di/service_locator.dart';
 import '../features/musics/models/music_model.dart';
-import '../widgets/card_actions.dart';
+import '../widgets/music_taste_widgets/card/card_actions.dart';
+import '../widgets/music_taste_widgets/track_card_stack.dart';
 
 class MusicTasteScreen extends StatefulWidget {
   const MusicTasteScreen({super.key});
@@ -15,10 +14,10 @@ class MusicTasteScreen extends StatefulWidget {
 }
 
 class _MusicTasteScreenState extends State<MusicTasteScreen> {
+  late GlobalKey<SwipeableCardState> swipeKey = GlobalKey();
   late Future<List<TrackModel>> futureTracks;
   List<Track> tracks = [];
   bool initialized = false;
-  bool finished = false;
   bool loadingError = false;
   String? userId;
   Map<String, int> genreCounter = {};
@@ -46,23 +45,11 @@ class _MusicTasteScreenState extends State<MusicTasteScreen> {
 
     setState(() {
       if (tracks.isNotEmpty) tracks.removeLast();
+      swipeKey = GlobalKey();
     });
     if (tracks.length <= fetchThreshold) {
       fetchMoreTracks();
     }
-    // if (tracks.isEmpty && !isFetchingMore) {
-    //   debugPrint('All tracks swiped!');
-    //   debugPrint('User genre taste: $genreCounter');
-
-    //   try {
-    //     await ServiceLocator.musicRepository.saveUserTaste(genreCounter);
-    //     debugPrint("Taste saved");
-    //   } catch (e) {
-    //     debugPrint("Taste save failed: $e");
-    //   }
-
-    //   setState(() => finished = true);
-    // }
   }
 
   @override
@@ -84,7 +71,6 @@ class _MusicTasteScreenState extends State<MusicTasteScreen> {
     final genres = m.genre.isNotEmpty
         ? m.genre.split(',').map((g) => g.trim()).toList()
         : <String>[];
-
     return Track(
       id: m.id,
       title: m.name,
@@ -98,10 +84,8 @@ class _MusicTasteScreenState extends State<MusicTasteScreen> {
 
   bool isFetchingMore = false;
   static const int fetchThreshold = 10;
-
   Future<void> fetchMoreTracks() async {
     if (isFetchingMore) return;
-
     isFetchingMore = true;
 
     try {
@@ -124,15 +108,10 @@ class _MusicTasteScreenState extends State<MusicTasteScreen> {
       body: SafeArea(
         child: Column(
           children: [
-            // const MusicTasteAppBar(),
             Expanded(
               child: FutureBuilder<List<TrackModel>>(
                 future: futureTracks,
                 builder: (context, snapshot) {
-                  if (finished) {
-                    return MusicTasteResult(genreCounter: genreCounter);
-                  }
-
                   if (snapshot.connectionState == ConnectionState.waiting) {
                     return const Center(child: CircularProgressIndicator());
                   }
@@ -168,45 +147,22 @@ class _MusicTasteScreenState extends State<MusicTasteScreen> {
 
                   return Stack(
                     children: [
-                      
-                      Stack(
-                        alignment: Alignment.center,
-                        children: tracks.asMap().entries.map((entry) {
-                          final index = entry.key;
-                          final track = entry.value;
-
-                          if (index == tracks.length - 1) {
-                            return SwipeableCard(
-                              track: track,
-                              onLike: () => handleSwipe(track, true),
-                              onDislike: () => handleSwipe(track, false),
-                            );
-                          }
-
-                          return Padding(
-                            padding: const EdgeInsets.only(top: 12),
-                            child: SwipeCard(
-                              track: track,
-                              onLike: () {},
-                              onDislike: () {},
-                            ),
-                          );
-                        }).toList(),
+                      TrackCardStack(
+                        tracks: tracks,
+                        swipeKey: swipeKey,
+                        onSwipe: handleSwipe,
                       ),
-
-                      /// ปุ่ม fixed ด้านล่าง
                       Positioned(
                         bottom: 30,
                         left: 0,
                         right: 0,
                         child: CardActions(
                           onLike: () {
-                            final track = tracks.last;
-                            handleSwipe(track, true);
+                            swipeKey.currentState?.swipeRight();
                           },
+
                           onDislike: () {
-                            final track = tracks.last;
-                            handleSwipe(track, false);
+                            swipeKey.currentState?.swipeLeft();
                           },
                         ),
                       ),

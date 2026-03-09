@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../models/track.dart';
+import '../../../models/track.dart';
 import 'card_image.dart';
 import 'card_info.dart';
 

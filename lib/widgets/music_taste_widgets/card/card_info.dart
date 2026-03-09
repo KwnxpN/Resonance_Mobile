@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../models/track.dart';
+import '../../../models/track.dart';
 
 class CardInfo extends StatelessWidget {
   final Track track;
@@ -24,7 +24,7 @@ class CardInfo extends StatelessWidget {
           Text(track.artist, style: const TextStyle(color: Colors.white54)),
           const SizedBox(height: 10),
           SizedBox(
-            height: 90,
+            height: 60,
             child: Wrap(
               spacing: 8,
               runSpacing: 8,

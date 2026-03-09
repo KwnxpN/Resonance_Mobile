@@ -1,13 +1,14 @@
 import 'package:flutter/material.dart';
 import 'dart:io';
 import 'package:flutter_project/screens/login_screen.dart';
+import 'package:flutter_project/screens/music_taste_screen.dart';
 import './core/di/service_locator.dart';
 
 import './themes/app_theme.dart';
 import './themes/app_colors.dart';
 import './themes/app_text_styles.dart';
 
-import './screens/music_taste_screen.dart';
+import './screens/match_screen.dart';
 import './screens/register_screen.dart';
 import './screens/home_screen.dart';
 import './screens/playlist_screen.dart';
@@ -97,8 +98,8 @@ class _MainScreenState extends State<MainScreen> {
 
   late final List<Widget> _screens = [
     const HomeScreen(),
-    const PlaylistScreen(),
     const MusicTasteScreen(),
+    const MatchScreen(),
     const ProfileScreen(),
   ];
 

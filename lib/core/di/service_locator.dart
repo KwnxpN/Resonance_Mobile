@@ -16,11 +16,16 @@ import '../../features/playlists/repositories/playlist_repository.dart';
 import '../../features/swipes/services/swipe_service.dart';
 import '../../features/swipes/repositories/swipe_repository.dart';
 
+import '../../features/match/services/match_api_service.dart';
+import '../../features/match/repositories/match_repository.dart';
+
 import '../../core/network/auth_dio.dart';
 import '../../core/network/music_dio.dart';
 import '../../core/network/user_dio.dart';
 import '../../core/player/player_controller.dart';
+
 import '../../features/interaction/repositories/interaction_repository.dart';
+import '../../core/network/match_dio.dart';
 
 class ServiceLocator {
   static late final Dio authDio;
@@ -29,6 +34,7 @@ class ServiceLocator {
   static late final Dio interactionDio;
   static late final MusicApiService musicApiService;
   static late final MusicRepository musicRepository;
+  static late final Dio matchDio;
 
   static late final AuthRepository authRepository;
   static late final UserRepository userRepository;
@@ -38,13 +44,16 @@ class ServiceLocator {
   static late final PlaylistRepository playlistRepository;
   static late final SwipeRepository swipeRepository;
 
+  static late final MatchApiService matchApiService;
+  static late final MatchRepository matchRepository;
+
   static late final PlayerController playerController;
   static void init() {
     authDio = AuthDio.create();
     musicDio = MusicDio.create();
     userDio = UserDio.create();
     interactionDio = InteractionDio.create();
-
+    matchDio = MatchDio.create();
     musicApiService = MusicApiService(musicDio);
     musicRepository = MusicRepository(musicApiService);
     playerController = PlayerController(musicRepository);
@@ -56,5 +65,7 @@ class ServiceLocator {
     playlistRepository = PlaylistRepository(PlaylistApiService(interactionDio));
     swipeRepository = SwipeRepository(SwipeApiService(interactionDio));
 
+    matchApiService = MatchApiService(matchDio);
+    matchRepository = MatchRepository(matchApiService);
   }
 }
