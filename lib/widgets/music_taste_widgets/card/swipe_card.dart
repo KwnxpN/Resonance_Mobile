@@ -35,19 +35,9 @@ class SwipeCard extends StatelessWidget {
               children: [
                 CardImage(track: track),
                 CardInfo(track: track),
-                const SizedBox(height: 100), // เผื่อพื้นที่ให้ปุ่ม
+                const SizedBox(height: 100)
               ],
             ),
-
-            // Positioned(
-            //   bottom: 20,
-            //   left: 0,
-            //   right: 0,
-            //   child: CardActions(
-            //     onLike: onLike,
-            //     onDislike: onDislike,
-            //   ),
-            // ),
           ],
         ),
       ),
