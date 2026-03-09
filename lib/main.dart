@@ -25,6 +25,8 @@ class MyHttpOverrides extends HttpOverrides {
 }
 
 void main() {
+  WidgetsFlutterBinding.ensureInitialized();
+
   // Enable certificate bypass for development
   HttpOverrides.global = MyHttpOverrides();
 
