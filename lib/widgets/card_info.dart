@@ -13,28 +13,38 @@ class CardInfo extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(track.title,
-              style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 22,
-                  fontWeight: FontWeight.bold)),
-          Text(track.artist,
-              style: const TextStyle(color: Colors.white54)),
+          Text(
+            track.title,
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 22,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          Text(track.artist, style: const TextStyle(color: Colors.white54)),
           const SizedBox(height: 10),
-          Wrap(
-            spacing: 8,
-            children: track.genre
-                .map((genre) => Chip(
-                      label: Text(genre),
-                      backgroundColor: Colors.white10,
-                      labelStyle:
-                          const TextStyle(color: Colors.white, fontSize: 12),
-                    ))
-                .toList(),
+          SizedBox(
+            height: 90,
+            child: Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: track.genre.map((genre) {
+                return Chip(
+                  label: Text(genre),
+                  backgroundColor: Colors.white10,
+                  labelStyle: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 12,
+                  ),
+                );
+              }).toList(),
+            ),
           ),
           const SizedBox(height: 12),
-          Text(track.description,
-              style: const TextStyle(color: Colors.white54, fontSize: 13)),
+          Text(
+            track.description,
+            style: const TextStyle(color: Colors.white54, fontSize: 13),
+          ),
         ],
       ),
     );

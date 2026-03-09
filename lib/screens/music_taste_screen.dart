@@ -168,6 +168,7 @@ class _MusicTasteScreenState extends State<MusicTasteScreen> {
 
                   return Stack(
                     children: [
+                      
                       Stack(
                         alignment: Alignment.center,
                         children: tracks.asMap().entries.map((entry) {
