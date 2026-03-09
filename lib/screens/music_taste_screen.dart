@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import '../models/track.dart';
 import '../widgets/swipe_card.dart';
-import '../widgets/music_taste_app_bar.dart';
 import '../widgets/swipeable_card.dart';
 import '../widgets/music_taste_result.dart';
 import '../core/di/service_locator.dart';

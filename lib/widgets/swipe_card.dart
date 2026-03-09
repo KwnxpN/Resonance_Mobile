@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import '../models/track.dart';
 import 'card_image.dart';
 import 'card_info.dart';
-import 'card_actions.dart';
 
 class SwipeCard extends StatelessWidget {
   final Track track;
