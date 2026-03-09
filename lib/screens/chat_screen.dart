@@ -135,18 +135,20 @@ class _ChatScreenState extends State<ChatScreen> {
       titleSpacing: 0,
       title: Row(
         children: [
-          Container(
-            width: 38,
-            height: 38,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              border: Border.all(color: colors.primary, width: 2),
-              image: DecorationImage(
-                image: NetworkImage(widget.userImage),
-                fit: BoxFit.cover,
-              ),
-            ),
-          ),
+          widget.userImage.isNotEmpty
+              ? Container(
+                  width: 38,
+                  height: 38,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    border: Border.all(color: colors.primary, width: 2),
+                    image: DecorationImage(
+                      image: NetworkImage(widget.userImage),
+                      fit: BoxFit.cover,
+                    ),
+                  ),
+                )
+              : _buildAvatar(colors, 38, widget.userName),
           const SizedBox(width: 10),
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -198,17 +200,19 @@ class _ChatScreenState extends State<ChatScreen> {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.end,
       children: [
-        Container(
-          width: 28,
-          height: 28,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            image: DecorationImage(
-              image: NetworkImage(widget.userImage),
-              fit: BoxFit.cover,
-            ),
-          ),
-        ),
+        widget.userImage.isNotEmpty
+            ? Container(
+                width: 28,
+                height: 28,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  image: DecorationImage(
+                    image: NetworkImage(widget.userImage),
+                    fit: BoxFit.cover,
+                  ),
+                ),
+              )
+            : _buildAvatar(colors, 28, widget.userName),
         const SizedBox(width: 8),
         Flexible(
           child: Container(
@@ -257,6 +261,28 @@ class _ChatScreenState extends State<ChatScreen> {
           ),
         ),
       ],
+    );
+  }
+
+  // ─────────────────── Avatar Placeholder ───────────────────
+  Widget _buildAvatar(AppColors colors, double size, String name) {
+    return Container(
+      width: size,
+      height: size,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        color: colors.primary.withValues(alpha: 0.2),
+        border: Border.all(color: colors.primary, width: 2),
+      ),
+      alignment: Alignment.center,
+      child: Text(
+        name.isNotEmpty ? name[0].toUpperCase() : '?',
+        style: TextStyle(
+          color: colors.primary,
+          fontWeight: FontWeight.bold,
+          fontSize: size * 0.45,
+        ),
+      ),
     );
   }
 
