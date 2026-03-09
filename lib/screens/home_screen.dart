@@ -76,6 +76,7 @@ class _HomeScreenState extends State<HomeScreen> {
           _PlaylistSection(
             future: _playlistsFuture,
             onRetry: _retryPlaylists,
+            onReturn: _retryPlaylists,
           ),
           const SizedBox(height: 24),
         ],
@@ -259,7 +260,6 @@ class _TrendingSection extends StatelessWidget {
                               ),
                             ).then((_) => onReturn());
                           },
-                          onMoreTap: () {},
                         );
                       }).toList(),
                     ),
@@ -279,8 +279,9 @@ class _TrendingSection extends StatelessWidget {
 class _PlaylistSection extends StatelessWidget {
   final Future<List<PersonalPlaylistModel>> future;
   final VoidCallback onRetry;
+  final VoidCallback onReturn;
 
-  const _PlaylistSection({required this.future, required this.onRetry});
+  const _PlaylistSection({required this.future, required this.onRetry, required this.onReturn});
 
   @override
   Widget build(BuildContext context) {
@@ -326,7 +327,7 @@ class _PlaylistSection extends StatelessWidget {
                 itemCount: playlists.length,
                 separatorBuilder: (_, __) => const SizedBox(width: 12),
                 itemBuilder: (context, index) =>
-                    PlaylistCard(playlist: playlists[index]),
+                    PlaylistCard(playlist: playlists[index], onReturn: onReturn),
               ),
             );
           },

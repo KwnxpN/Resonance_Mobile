@@ -25,4 +25,13 @@ class PlaylistRepository {
       return false;
     }
   }
+
+  Future<bool> removeTrackFromPlaylist(String playlistId, String trackId) async {
+    try {
+      await api.removeTrackFromPlaylist(playlistId, trackId);
+      return true;
+    } catch (e) {
+      return false;
+    }
+  }
 }

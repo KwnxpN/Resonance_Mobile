@@ -26,20 +26,22 @@ class PlaylistScreen extends StatefulWidget {
 class _PlaylistScreenState extends State<PlaylistScreen> {
   // Future for fetching tracks from API
   late Future<List<TrackModel>> _tracksFuture;
+  late List<String> _trackIds;
 
   @override
   void initState() {
     super.initState();
+    _trackIds = List<String>.from(widget.tracks);
     _tracksFuture = _fetchTracks();
   }
 
   Future<List<TrackModel>> _fetchTracks() async {
     const batchSize = 5;
     final results = <TrackModel>[];
-    for (var i = 0; i < widget.tracks.length; i += batchSize) {
-      final batch = widget.tracks.sublist(
+    for (var i = 0; i < _trackIds.length; i += batchSize) {
+      final batch = _trackIds.sublist(
         i,
-        (i + batchSize).clamp(0, widget.tracks.length),
+        (i + batchSize).clamp(0, _trackIds.length),
       );
       final batchResults = await Future.wait(
         batch.map((id) => ServiceLocator.musicRepository.getTrackById(id)),
@@ -47,6 +49,15 @@ class _PlaylistScreenState extends State<PlaylistScreen> {
       results.addAll(batchResults);
     }
     return results;
+  }
+
+  Future<void> _removeTrack(String trackId) async {
+    final success = await ServiceLocator.playlistRepository
+        .removeTrackFromPlaylist(widget.playlistId, trackId);
+    if (success) {
+      setState(() => _trackIds.remove(trackId));
+      _refreshTracks();
+    }
   }
 
   String _totalDuration(List<TrackModel> tracks) {
@@ -159,8 +170,16 @@ class _PlaylistScreenState extends State<PlaylistScreen> {
                           ),
                         );
                       },
-                      onMoreTap: () {
-                        // Handle more options
+                      menuItems: [
+                        PopupMenuItem(
+                          value: 'remove',
+                          child: Text('Remove from Playlist'),
+                        ),
+                      ],
+                      onMenuSelected: (value) {
+                        if (value == 'remove') {
+                          _removeTrack(track.id);
+                        }
                       },
                     );
                   }, childCount: snapshot.data!.length),
