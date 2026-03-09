@@ -7,7 +7,7 @@ import './themes/app_theme.dart';
 import './themes/app_colors.dart';
 import './themes/app_text_styles.dart';
 
-import './screens/music_taste_screen.dart';
+import './screens/match_screen.dart';
 import './screens/register_screen.dart';
 import './screens/home_screen.dart';
 import './screens/playlist_screen.dart';
@@ -18,14 +18,15 @@ class MyHttpOverrides extends HttpOverrides {
   @override
   HttpClient createHttpClient(SecurityContext? context) {
     return super.createHttpClient(context)
-      ..badCertificateCallback = (X509Certificate cert, String host, int port) => true;
+      ..badCertificateCallback =
+          (X509Certificate cert, String host, int port) => true;
   }
 }
 
 void main() {
   // Enable certificate bypass for development
   HttpOverrides.global = MyHttpOverrides();
-  
+
   ServiceLocator.init();
   runApp(const MyApp());
 }
@@ -41,7 +42,7 @@ class MyApp extends StatelessWidget {
       routes: {
         '/login': (context) => const LoginScreen(),
         '/register': (context) => const RegisterScreen(),
-        '/music_taste': (context) => const MusicTasteScreen(),
+        '/music_taste': (context) => const MatchScreen(),
         '/playlist': (context) => const PlaylistScreen(),
         '/profile': (context) => const ProfileScreen(),
       },
@@ -59,11 +60,11 @@ class MainScreen extends StatefulWidget {
 
 class _MainScreenState extends State<MainScreen> {
   int _currentIndex = 0;
-  
+
   late final List<Widget> _screens = [
     const HomeScreen(),
     const PlaylistScreen(),
-    const MusicTasteScreen(),
+    const MatchScreen(),
     const ProfileScreen(),
   ];
 
