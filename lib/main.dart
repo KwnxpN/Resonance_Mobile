@@ -93,11 +93,18 @@ class MainScreen extends StatefulWidget {
 class _MainScreenState extends State<MainScreen> {
   int _currentIndex = 0;
 
-  late final List<Widget> _screens = [
-    const HomeScreen(),
-    const HomeScreen(),
-    const MusicTasteScreen(),
-    const ProfileScreen(),
+  final List<GlobalKey<NavigatorState>> _navigatorKeys = [
+    GlobalKey<NavigatorState>(),
+    GlobalKey<NavigatorState>(),
+    GlobalKey<NavigatorState>(),
+    GlobalKey<NavigatorState>(),
+  ];
+
+  static const List<Widget> _screens = [
+    HomeScreen(),
+    HomeScreen(),
+    MusicTasteScreen(),
+    ProfileScreen(),
   ];
 
   @override
@@ -116,11 +123,32 @@ class _MainScreenState extends State<MainScreen> {
           ],
         ),
       ),
-      body: Column(
-        children: [
-          Expanded(child: _screens[_currentIndex]),
-          const MiniPlayer(),
-        ],
+      body: PopScope(
+        canPop: false,
+        onPopInvokedWithResult: (didPop, _) {
+          if (!didPop) {
+            _navigatorKeys[_currentIndex].currentState?.maybePop();
+          }
+        },
+        child: Column(
+          children: [
+            Expanded(
+              child: IndexedStack(
+                index: _currentIndex,
+                children: List.generate(
+                  _screens.length,
+                  (i) => Navigator(
+                    key: _navigatorKeys[i],
+                    onGenerateRoute: (_) => MaterialPageRoute(
+                      builder: (_) => _screens[i],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+            const MiniPlayer(),
+          ],
+        ),
       ),
       bottomNavigationBar: Container(
         decoration: BoxDecoration(

@@ -33,12 +33,20 @@ class _PlaylistScreenState extends State<PlaylistScreen> {
     _tracksFuture = _fetchTracks();
   }
 
-  Future<List<TrackModel>> _fetchTracks() {
-    return Future.wait(
-      widget.tracks.map(
-        (id) => ServiceLocator.musicRepository.getTrackById(id),
-      ),
-    );
+  Future<List<TrackModel>> _fetchTracks() async {
+    const batchSize = 5;
+    final results = <TrackModel>[];
+    for (var i = 0; i < widget.tracks.length; i += batchSize) {
+      final batch = widget.tracks.sublist(
+        i,
+        (i + batchSize).clamp(0, widget.tracks.length),
+      );
+      final batchResults = await Future.wait(
+        batch.map((id) => ServiceLocator.musicRepository.getTrackById(id)),
+      );
+      results.addAll(batchResults);
+    }
+    return results;
   }
 
   String _totalDuration(List<TrackModel> tracks) {
@@ -142,8 +150,7 @@ class _PlaylistScreenState extends State<PlaylistScreen> {
                     return SongCard(
                       track: track,
                       onTap: () {
-                        Navigator.push(
-                          context,
+                        Navigator.of(context, rootNavigator: true).push(
                           MaterialPageRoute(
                             builder: (_) => MusicPlaybackScreen(
                               tracks: snapshot.data!,

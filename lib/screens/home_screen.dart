@@ -159,8 +159,7 @@ class _RecommendedSection extends StatelessWidget {
                       return TrackImageCard(
                         track: pageItems[index],
                         onTap: () {
-                          Navigator.push(
-                            context,
+                          Navigator.of(context, rootNavigator: true).push(
                             MaterialPageRoute(
                               builder: (_) => MusicPlaybackScreen(
                                 tracks: tracks,
@@ -251,8 +250,7 @@ class _TrendingSection extends StatelessWidget {
                         return SongCard(
                           track: track,
                           onTap: () {
-                            Navigator.push(
-                              context,
+                            Navigator.of(context, rootNavigator: true).push(
                               MaterialPageRoute(
                                 builder: (_) => MusicPlaybackScreen(
                                   tracks: tracks,
