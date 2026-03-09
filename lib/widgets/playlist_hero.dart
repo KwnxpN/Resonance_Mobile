@@ -44,14 +44,6 @@ class PlaylistHero extends StatelessWidget {
                       size: 28,
                     ),
                   ),
-                  IconButton(
-                    onPressed: () {},
-                    icon: Icon(
-                      Icons.more_horiz,
-                      color: colors.onBackground,
-                      size: 28,
-                    ),
-                  ),
                 ],
               ),
             ),
