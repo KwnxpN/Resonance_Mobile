@@ -20,18 +20,8 @@ class MusicRepository {
     try {
       final response = await apiService.fetchRandomTracks();
       final data = response.data['data'] as List;
-      
-      print('API Response (first item): ${data.isNotEmpty ? data.first : 'empty'}');
-      
-      final tracks = data.map((e) => TrackModel.fromJson(e)).toList();
-      
-      if (tracks.isNotEmpty) {
-        print('First track imageUrl: ${tracks.first.imageUrl}');
-      }
-
-      return tracks;
+      return data.map((e) => TrackModel.fromJson(e)).toList();
     } catch (e) {
-      print('Error loading tracks: $e');
       throw Exception('Failed to load tracks');
     }
   }
