@@ -19,7 +19,6 @@ import '../../features/swipes/repositories/swipe_repository.dart';
 import '../../core/network/auth_dio.dart';
 import '../../core/network/music_dio.dart';
 import '../../core/network/user_dio.dart';
-import '../../core/network/interaction_dio.dart';
 import '../../core/player/player_controller.dart';
 import '../../features/interaction/repositories/interaction_repository.dart';
 
