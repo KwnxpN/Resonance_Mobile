@@ -6,6 +6,7 @@ import '../features/musics/models/music_model.dart';
 import '../themes/app_colors.dart';
 import '../themes/app_text_styles.dart';
 import '../widgets/artwork_image.dart';
+import '../widgets/add_to_playlist_sheet.dart';
 
 class MusicPlaybackScreen extends StatefulWidget {
   final List<TrackModel> tracks;
@@ -25,7 +26,38 @@ class _MusicPlaybackScreenState extends State<MusicPlaybackScreen> {
   @override
   void initState() {
     super.initState();
-    ServiceLocator.playerController.loadTracks(widget.tracks, widget.initialIndex);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ServiceLocator.playerController.loadTracks(
+        widget.tracks,
+        widget.initialIndex,
+      );
+    });
+  }
+
+  Future<void> _showAddToPlaylistDrawer(BuildContext context) async {
+    final colors = Theme.of(context).extension<AppColors>()!;
+    final controller = ServiceLocator.playerController;
+    final trackId = controller.trackList[controller.currentIndex].id;
+
+    final user = await ServiceLocator.userRepository.me();
+    if (user == null || !context.mounted) return;
+
+    final playlists = await ServiceLocator.playlistRepository
+        .getPersonalPlaylists(user.userId);
+    if (!context.mounted) return;
+
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: colors.surface,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (ctx) => AddToPlaylistSheet(
+        playlists: playlists,
+        trackId: trackId,
+      ),
+    );
   }
 
   @override
@@ -117,9 +149,9 @@ class _MusicPlaybackScreenState extends State<MusicPlaybackScreen> {
                                           : controller.songName,
                                       style: AppTextStyles.textXl(context)
                                           .copyWith(
-                                        color: colors.onBackground,
-                                        fontWeight: FontWeight.bold,
-                                      ),
+                                            color: colors.onBackground,
+                                            fontWeight: FontWeight.bold,
+                                          ),
                                       maxLines: 1,
                                       overflow: TextOverflow.ellipsis,
                                     ),
@@ -127,8 +159,9 @@ class _MusicPlaybackScreenState extends State<MusicPlaybackScreen> {
                                       controller.isLoading
                                           ? 'Loading...'
                                           : controller.artistName,
-                                      style: AppTextStyles.textMd(context)
-                                          .copyWith(color: colors.muted),
+                                      style: AppTextStyles.textMd(
+                                        context,
+                                      ).copyWith(color: colors.muted),
                                       maxLines: 1,
                                       overflow: TextOverflow.ellipsis,
                                     ),
@@ -143,15 +176,9 @@ class _MusicPlaybackScreenState extends State<MusicPlaybackScreen> {
                                       foregroundColor: colors.onBackground,
                                       iconSize: 28,
                                     ),
-                                    onPressed: () {},
-                                  ),
-                                  IconButton(
-                                    icon: const Icon(Icons.favorite_border),
-                                    style: IconButton.styleFrom(
-                                      foregroundColor: colors.onBackground,
-                                      iconSize: 28,
-                                    ),
-                                    onPressed: () {},
+                                    onPressed: controller.isLoading
+                                        ? null
+                                        : () => _showAddToPlaylistDrawer(context),
                                   ),
                                 ],
                               ),
@@ -186,8 +213,7 @@ class _MusicPlaybackScreenState extends State<MusicPlaybackScreen> {
                                   foregroundColor: colors.onBackground,
                                   iconSize: 36,
                                 ),
-                                onPressed: controller.isLoading ||
-                                        controller.currentIndex <= 0
+                                onPressed: controller.isLoading
                                     ? null
                                     : controller.playPrevious,
                               ),
@@ -223,73 +249,9 @@ class _MusicPlaybackScreenState extends State<MusicPlaybackScreen> {
                                   foregroundColor: colors.onBackground,
                                   iconSize: 36,
                                 ),
-                                onPressed: controller.isLoading ||
-                                        controller.currentIndex >=
-                                            controller.trackList.length - 1
+                                onPressed: controller.isLoading
                                     ? null
                                     : controller.playNext,
-                              ),
-                            ],
-                          ),
-
-                          const SizedBox(height: 24),
-
-                          // Friends listening
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 16,
-                                  vertical: 12,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: colors.muted.withValues(alpha: 0.1),
-                                  borderRadius: BorderRadius.circular(24),
-                                  border: Border.all(color: colors.muted),
-                                ),
-                                child: Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    SizedBox(
-                                      width: 40,
-                                      height: 24,
-                                      child: Stack(
-                                        children: [
-                                          Positioned(
-                                            left: 0,
-                                            child: CircleAvatar(
-                                              radius: 12,
-                                              backgroundColor: colors.primary,
-                                              child: Icon(Icons.person,
-                                                  size: 12,
-                                                  color: colors.onBackground),
-                                            ),
-                                          ),
-                                          Positioned(
-                                            left: 14,
-                                            child: CircleAvatar(
-                                              radius: 12,
-                                              backgroundColor: colors.primary,
-                                              child: Icon(Icons.person,
-                                                  size: 12,
-                                                  color: colors.onBackground),
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                    const SizedBox(width: 8),
-                                    Text(
-                                      '12 Friends Listening',
-                                      style: AppTextStyles.textSm(context)
-                                          .copyWith(
-                                        color: colors.onBackground,
-                                        fontWeight: FontWeight.w600,
-                                      ),
-                                    ),
-                                  ],
-                                ),
                               ),
                             ],
                           ),

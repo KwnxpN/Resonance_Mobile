@@ -16,4 +16,13 @@ class PlaylistRepository {
       return [];
     }
   }
+
+  Future<bool> addTrackToPlaylist(String playlistId, String trackId) async {
+    try {
+      await api.addTrackToPlaylist(playlistId, trackId);
+      return true;
+    } catch (e) {
+      return false;
+    }
+  }
 }

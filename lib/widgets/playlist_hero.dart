@@ -1,28 +1,16 @@
 import 'package:flutter/material.dart';
-import '../models/mock_data.dart';
 import '../themes/app_colors.dart';
 import '../themes/app_text_styles.dart';
 
 class PlaylistHero extends StatelessWidget {
-  final Playlist playlist;
-  final VoidCallback? onLikeTap;
-  final VoidCallback? onDownloadTap;
-  final VoidCallback? onShuffleTap;
+  final String title;
+  final String? duration;
 
   const PlaylistHero({
     super.key,
-    required this.playlist,
-    this.onLikeTap,
-    this.onDownloadTap,
-    this.onShuffleTap,
+    required this.title,
+    this.duration,
   });
-
-  String _formatLikes(int count) {
-    if (count >= 1000) {
-      return '${(count / 1000).toStringAsFixed(1)}k';
-    }
-    return count.toString();
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -155,30 +143,6 @@ class PlaylistHero extends StatelessWidget {
               ),
             ),
 
-            // Playlist tag
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 24),
-              child: Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 6,
-                ),
-                decoration: BoxDecoration(
-                  color: colors.primary.withValues(alpha: 0.2),
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: Text(
-                  playlist.tag,
-                  style: AppTextStyles.textXs(context).copyWith(
-                    color: colors.primary,
-                    fontWeight: FontWeight.w600,
-                    letterSpacing: 1.2,
-                  ),
-                ),
-              ),
-            ),
-            const SizedBox(height: 12),
-
             // Playlist title with gradient
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 24),
@@ -187,7 +151,7 @@ class PlaylistHero extends StatelessWidget {
                   colors: [colors.onBackground, colors.primary],
                 ).createShader(bounds),
                 child: Text(
-                  playlist.title,
+                  title,
                   style: AppTextStyles.text2xl(context).copyWith(
                     color: Colors.white,
                     fontWeight: FontWeight.bold,
@@ -198,106 +162,23 @@ class PlaylistHero extends StatelessWidget {
             ),
             const SizedBox(height: 8),
 
-            // Description
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 24),
-              child: Text(
-                playlist.description,
-                style: AppTextStyles.textSm(
-                  context,
-                ).copyWith(color: colors.muted),
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-              ),
-            ),
-            const SizedBox(height: 16),
-
-            // Stats row (likes and duration)
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 24),
-              child: Row(
-                children: [
-                  Icon(Icons.favorite, color: colors.primary, size: 18),
-                  const SizedBox(width: 6),
-                  Text(
-                    '${_formatLikes(playlist.likesCount)} Likes',
-                    style: AppTextStyles.textSm(
-                      context,
-                    ).copyWith(color: colors.muted),
-                  ),
-                  const SizedBox(width: 20),
-                  Icon(Icons.access_time, color: colors.muted, size: 18),
-                  const SizedBox(width: 6),
-                  Text(
-                    playlist.totalDuration,
-                    style: AppTextStyles.textSm(
-                      context,
-                    ).copyWith(color: colors.muted),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 24),
-
-            // Action buttons row
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 24),
-              child: Row(
-                children: [
-                  // Like button
-                  _ActionButton(
-                    icon: Icons.favorite_border,
-                    onTap: onLikeTap,
-                    colors: colors,
-                  ),
-                  const SizedBox(width: 16),
-
-                  // Download button
-                  _ActionButton(
-                    icon: Icons.download_outlined,
-                    onTap: onDownloadTap,
-                    colors: colors,
-                  ),
-
-                  const Spacer(),
-
-                  // Shuffle button
-                  Material(
-                    color: colors.primary,
-                    borderRadius: BorderRadius.circular(30),
-                    child: InkWell(
-                      onTap: onShuffleTap,
-                      borderRadius: BorderRadius.circular(30),
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 24,
-                          vertical: 14,
-                        ),
-                        child: Row(
-                          children: [
-                            Icon(
-                              Icons.play_arrow_rounded,
-                              color: colors.onPrimary,
-                              size: 24,
-                            ),
-                            const SizedBox(width: 8),
-                            Text(
-                              'SHUFFLE',
-                              style: AppTextStyles.textMd(context).copyWith(
-                                color: colors.onPrimary,
-                                fontWeight: FontWeight.bold,
-                                letterSpacing: 1.2,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
+            // Duration
+            if (duration != null)
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 24),
+                child: Row(
+                  children: [
+                    Icon(Icons.access_time, color: colors.muted, size: 18),
+                    const SizedBox(width: 6),
+                    Text(
+                      duration!,
+                      style: AppTextStyles.textSm(
+                        context,
+                      ).copyWith(color: colors.muted),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
-            ),
-            const SizedBox(height: 24),
           ],
         ),
       ),
@@ -305,29 +186,3 @@ class PlaylistHero extends StatelessWidget {
   }
 }
 
-class _ActionButton extends StatelessWidget {
-  final IconData icon;
-  final VoidCallback? onTap;
-  final AppColors colors;
-
-  const _ActionButton({required this.icon, this.onTap, required this.colors});
-
-  @override
-  Widget build(BuildContext context) {
-    return Material(
-      color: Colors.transparent,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(30),
-        side: BorderSide(color: colors.border, width: 1.5),
-      ),
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(30),
-        child: Padding(
-          padding: const EdgeInsets.all(14),
-          child: Icon(icon, color: colors.onBackground, size: 22),
-        ),
-      ),
-    );
-  }
-}

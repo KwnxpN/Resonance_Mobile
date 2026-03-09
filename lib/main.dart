@@ -10,7 +10,6 @@ import './themes/app_text_styles.dart';
 import './screens/music_taste_screen.dart';
 import './screens/register_screen.dart';
 import './screens/home_screen.dart';
-import './screens/playlist_screen.dart';
 import './screens/profile_screen.dart';
 import './widgets/mini_player.dart';
 
@@ -46,7 +45,6 @@ class MyApp extends StatelessWidget {
         '/login': (context) => const LoginScreen(),
         '/register': (context) => const RegisterScreen(),
         '/music_taste': (context) => const MusicTasteScreen(),
-        '/playlist': (context) => const PlaylistScreen(),
         '/profile': (context) => const ProfileScreen(),
         '/home': (context) => const MainScreen(),
       },
@@ -97,7 +95,7 @@ class _MainScreenState extends State<MainScreen> {
 
   late final List<Widget> _screens = [
     const HomeScreen(),
-    const PlaylistScreen(),
+    const HomeScreen(),
     const MusicTasteScreen(),
     const ProfileScreen(),
   ];

@@ -81,6 +81,8 @@ class PlayerController extends ChangeNotifier {
   void playPrevious() {
     if (currentIndex > 0) {
       playTrackAtIndex(currentIndex - 1);
+    } else {
+      playTrackAtIndex(trackList.length - 1);
     }
   }
 
