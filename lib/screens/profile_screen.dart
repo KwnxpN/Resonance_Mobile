@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
+import '../core/di/service_locator.dart';
+import 'edit_profile_screen.dart';
+import '../features/users/models/user.dart';
 import '../themes/app_colors.dart';
 import '../themes/app_text_styles.dart';
-import '../widgets/music_player_card.dart'; // Ensure this path is correct
-import '../widgets/vibe_chip.dart';
-import '../widgets/artist_avatar.dart';
 import '../widgets/menu_option.dart';
 
 class ProfileScreen extends StatefulWidget {
@@ -14,187 +14,182 @@ class ProfileScreen extends StatefulWidget {
 }
 
 class _ProfileScreenState extends State<ProfileScreen> {
+  UserModel? _user;
+  bool _loading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadProfile();
+  }
+
+  Future<void> _loadProfile() async {
+    final user = await ServiceLocator.userRepository.me();
+    if (mounted) setState(() { _user = user; _loading = false; });
+  }
+
+  Future<void> _logout() async {
+    await ServiceLocator.authRepository.logout();
+    if (!mounted) return;
+    Navigator.pushNamedAndRemoveUntil(context, '/login', (_) => false);
+  }
+
   @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).extension<AppColors>()!;
-    // defined colors based on the image
 
     return Scaffold(
       backgroundColor: colors.background,
-      appBar: AppBar(
-        backgroundColor: colors.background,
-        elevation: 0,
-        title: const Text('Profile', style: TextStyle(color: Colors.white)),
-        centerTitle: true,
-        iconTheme: const IconThemeData(color: Colors.white),
-      ),
-      body: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // --- 1. User Header Section ---
-              Center(
+      body: _loading
+          ? const Center(child: CircularProgressIndicator())
+          : SingleChildScrollView(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
                 child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const CircleAvatar(
-                      radius: 50,
-                      backgroundImage: NetworkImage(
-                        'https://i.pravatar.cc/300',
-                      ), // Placeholder image
-                      backgroundColor: Colors.grey,
+                    // --- Avatar + name + email ---
+                    Center(
+                      child: Column(
+                        children: [
+                          CircleAvatar(
+                            radius: 50,
+                            backgroundColor: Colors.grey[800],
+                            backgroundImage: (_user?.avatarUrl.isNotEmpty == true)
+                                ? NetworkImage(_user!.avatarUrl)
+                                : null,
+                            child: (_user?.avatarUrl.isNotEmpty == true)
+                                ? null
+                                : const Icon(Icons.person, size: 50, color: Colors.white54),
+                          ),
+                          const SizedBox(height: 12),
+                          Text(
+                            _user?.displayName.isNotEmpty == true
+                                ? _user!.displayName
+                                : 'No display name',
+                            style: AppTextStyles.textXl(context).copyWith(
+                              color: colors.onBackground,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            _user?.email ?? '—',
+                            style: AppTextStyles.textMd(context)
+                                .copyWith(color: colors.muted),
+                          ),
+                        ],
+                      ),
                     ),
+
+                    const SizedBox(height: 24),
+
+                    // --- Bio ---
+                    _sectionLabel('Bio', colors),
+                    const SizedBox(height: 8),
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF3A1C2E),
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      child: Text(
+                        _user?.bio.isNotEmpty == true
+                            ? _user!.bio
+                            : 'No bio yet.',
+                        style: TextStyle(
+                          color: _user?.bio.isNotEmpty == true
+                              ? Colors.white
+                              : Colors.white38,
+                          fontSize: 14,
+                        ),
+                      ),
+                    ),
+
+                    const SizedBox(height: 24),
+
+                    // --- Info rows ---
+                    _sectionLabel('Account Info', colors),
                     const SizedBox(height: 12),
-                    Text(
-                      'John Doe',
-                      style: AppTextStyles.textXl(
-                        context,
-                      ).copyWith(color: colors.onBackground, fontWeight: FontWeight.bold),
+                    _infoRow(Icons.calendar_today_outlined, 'Member since',
+                        _formatDate(_user?.createdAt), colors),
+
+                    const SizedBox(height: 30),
+
+                    // --- Edit Profile ---
+                    MenuOption(
+                      icon: Icons.edit,
+                      title: 'Edit Profile',
+                      color: const Color(0xFF911D58),
+                      onTap: () async {
+                        if (_user == null) return;
+                        final updated = await Navigator.push<UserModel>(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => EditProfileScreen(user: _user!),
+                          ),
+                        );
+                        if (updated != null && mounted) {
+                          setState(() => _user = updated);
+                        }
+                      },
                     ),
-                    const SizedBox(height: 4),
-                    Text(
-                      '@johndoe · New York, USA',
-                      style: AppTextStyles.textMd(
-                        context,
-                      ).copyWith(color: colors.muted, fontWeight: FontWeight.w600),
+
+                    // --- Logout ---
+                    MenuOption(
+                      icon: Icons.logout,
+                      title: 'Logout',
+                      color: const Color(0xFF7B1C1C),
+                      onTap: _logout,
                     ),
+
+                    const SizedBox(height: 40),
                   ],
                 ),
               ),
+            ),
+    );
+  }
 
-              // --- 2. Music Player Card (From previous request) ---
-              const MusicPlayerCard(),
-
-              const SizedBox(height: 24),
-
-              // --- 3. My Vibe Section ---
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    'My Vibe',
-                    style: AppTextStyles.textLg(context).copyWith(color: colors.onBackground, fontWeight: FontWeight.bold),
-                  ),
-                  TextButton(
-                    onPressed: () {},
-                    child: Text(
-                      'Edit',
-                      style: AppTextStyles.textMd(context).copyWith(color: colors.primary, fontWeight: FontWeight.bold),
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 8),
-              Wrap(
-                spacing: 10,
-                runSpacing: 10,
-                children: [
-                  const VibeChip(
-                    label: 'Electronic',
-                    icon: Icons.headphones,
-                    color: Color(0xFF3F2033),
-                  ),
-                  const VibeChip(
-                    label: 'Synthwave',
-                    icon: Icons.piano,
-                    color: Color(0xFF3F2033),
-                  ),
-                  const VibeChip(
-                    label: 'Dream Pop',
-                    icon: Icons.cloud,
-                    color: Color(0xFF3F2033),
-                  ),
-                  const VibeChip(
-                    label: 'Indie Rock',
-                    icon: Icons.music_note_rounded,
-                    color: Color(0xFF3F2033),
-                  ),
-                  // "Add Vibe" Button
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 10,
-                    ),
-                    decoration: BoxDecoration(
-                      border: Border.all(
-                        color: Colors.white24,
-                        style: BorderStyle.solid,
-                      ), // Dashed border requires external package or custom painter
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(Icons.add, size: 18, color: Colors.white70),
-                        SizedBox(width: 6),
-                        Text(
-                          'Add Vibe',
-                          style: AppTextStyles.textSm(context).copyWith(color: colors.muted),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-
-              const SizedBox(height: 24),
-
-              // --- 4. Top Artists Section ---
-              const Text(
-                'Top Artists',
-                style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
-                ),
-              ),
-              const SizedBox(height: 16),
-              const Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  ArtistAvatar(
-                    name: 'The Weeknd',
-                    imageUrl:
-                        'https://upload.wikimedia.org/wikipedia/commons/e/e8/The_Weeknd_at_TIFF_2019.png',
-                  ),
-                  ArtistAvatar(
-                    name: 'Daft Punk',
-                    imageUrl:
-                        'https://upload.wikimedia.org/wikipedia/commons/a/a7/Daft_Punk_2013.jpg',
-                  ),
-                  ArtistAvatar(
-                    name: 'Lana Del Rey',
-                    imageUrl:
-                        'https://upload.wikimedia.org/wikipedia/commons/3/36/Lana_Del_Rey_Cannes_2012.jpg',
-                  ),
-                  ArtistAvatar(
-                    name: 'Tame Impala',
-                    imageUrl:
-                        'https://upload.wikimedia.org/wikipedia/commons/2/29/Tame_Impala_Coachella_2015.jpg',
-                  ),
-                ],
-              ),
-
-              const SizedBox(height: 30),
-
-              // --- 5. Menu Options Section ---
-              const MenuOption(
-                icon: Icons.edit,
-                title: 'Edit Profile',
-                color: Color(0xFF911D58), // Darker pink icon bg
-              ),
-              const MenuOption(
-                icon: Icons.notifications,
-                title: 'Notifications',
-                color: Color(0xFF4B3263), // Purple icon bg
-              ),
-
-              const SizedBox(height: 40), // Bottom padding
-            ],
-          ),
-        ),
+  Widget _sectionLabel(String text, AppColors colors) {
+    return Text(
+      text,
+      style: AppTextStyles.textLg(context).copyWith(
+        color: colors.onBackground,
+        fontWeight: FontWeight.bold,
       ),
     );
+  }
+
+  Widget _infoRow(IconData icon, String label, String value, AppColors colors) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: Row(
+        children: [
+          Icon(icon, size: 18, color: colors.muted),
+          const SizedBox(width: 10),
+          Text('$label: ',
+              style: TextStyle(color: colors.muted, fontSize: 13)),
+          Expanded(
+            child: Text(
+              value,
+              style: const TextStyle(color: Colors.white, fontSize: 13),
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  String _formatDate(String? iso) {
+    if (iso == null || iso.isEmpty) return '—';
+    try {
+      final dt = DateTime.parse(iso).toLocal();
+      return '${dt.year}-${dt.month.toString().padLeft(2, '0')}-${dt.day.toString().padLeft(2, '0')}';
+    } catch (_) {
+      return iso;
+    }
   }
 }

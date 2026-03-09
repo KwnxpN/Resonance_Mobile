@@ -3,6 +3,6 @@ import 'package:flutter_project/core/network/base_dio_factory.dart';
 
 class AuthDio {
   static Dio create() {
-    return BaseDioFactory.create("http://10.0.2.2:9090");
+    return BaseDioFactory.create("http://10.0.2.2:8000/api/auth");
   }
 }

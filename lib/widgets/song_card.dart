@@ -18,8 +18,8 @@ class SongCard extends StatelessWidget {
   });
 
   String get _artistsText {
-    if (track.artists.isEmpty) return 'Unknown Artist';
-    return track.artists.map((a) => a.toString()).join(', ');
+    if (track.artist.isEmpty) return 'Unknown Artist';
+    return track.artist;
   }
 
   @override
@@ -102,7 +102,7 @@ class SongCard extends StatelessWidget {
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 12),
                 child: Text(
-                  track.duration,
+                  track.duration ?? '',
                   style: AppTextStyles.textSm(
                     context,
                   ).copyWith(color: isPlaying ? colors.primary : colors.muted),
