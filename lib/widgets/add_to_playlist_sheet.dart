@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../core/di/service_locator.dart';
 import '../features/playlists/models/playlist.dart';
+import '../features/playlists/repositories/playlist_repository.dart';
 import '../themes/app_colors.dart';
 import '../themes/app_text_styles.dart';
 
@@ -21,14 +22,14 @@ class AddToPlaylistSheet extends StatefulWidget {
 class _AddToPlaylistSheetState extends State<AddToPlaylistSheet> {
   String? _loadingId;
 
-  void _showToast(BuildContext context, {required bool success}) {
+  void _showToast(BuildContext context, {required AddTrackResult result}) {
     final colors = Theme.of(context).extension<AppColors>()!;
     final overlay = Overlay.of(context);
     late OverlayEntry entry;
 
     entry = OverlayEntry(
       builder: (_) => _ToastOverlay(
-        success: success,
+        result: result,
         colors: colors,
         onDone: () => entry.remove(),
       ),
@@ -39,11 +40,11 @@ class _AddToPlaylistSheetState extends State<AddToPlaylistSheet> {
 
   Future<void> _addTo(String playlistId) async {
     setState(() => _loadingId = playlistId);
-    final success = await ServiceLocator.playlistRepository
+    final result = await ServiceLocator.playlistRepository
         .addTrackToPlaylist(playlistId, widget.trackId);
     if (!mounted) return;
     Navigator.pop(context);
-    _showToast(context, success: success);
+    _showToast(context, result: result);
   }
 
   @override
@@ -137,12 +138,12 @@ class _AddToPlaylistSheetState extends State<AddToPlaylistSheet> {
 }
 
 class _ToastOverlay extends StatefulWidget {
-  final bool success;
+  final AddTrackResult result;
   final AppColors colors;
   final VoidCallback onDone;
 
   const _ToastOverlay({
-    required this.success,
+    required this.result,
     required this.colors,
     required this.onDone,
   });
@@ -200,11 +201,19 @@ class _ToastOverlayState extends State<_ToastOverlay>
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
               decoration: BoxDecoration(
-                color: widget.success ? colors.primary : Colors.red.shade800,
+                color: widget.result == AddTrackResult.success
+                    ? colors.primary
+                    : widget.result == AddTrackResult.alreadyExists
+                        ? Colors.orange.shade700
+                        : Colors.red.shade800,
                 borderRadius: BorderRadius.circular(16),
                 boxShadow: [
                   BoxShadow(
-                    color: (widget.success ? colors.primary : Colors.red)
+                    color: (widget.result == AddTrackResult.success
+                            ? colors.primary
+                            : widget.result == AddTrackResult.alreadyExists
+                                ? Colors.orange
+                                : Colors.red)
                         .withValues(alpha: 0.4),
                     blurRadius: 20,
                     offset: const Offset(0, 6),
@@ -214,17 +223,21 @@ class _ToastOverlayState extends State<_ToastOverlay>
               child: Row(
                 children: [
                   Icon(
-                    widget.success
+                    widget.result == AddTrackResult.success
                         ? Icons.check_circle_rounded
-                        : Icons.error_rounded,
+                        : widget.result == AddTrackResult.alreadyExists
+                            ? Icons.info_rounded
+                            : Icons.error_rounded,
                     color: colors.onPrimary,
                     size: 24,
                   ),
                   const SizedBox(width: 12),
                   Text(
-                    widget.success
+                    widget.result == AddTrackResult.success
                         ? 'Added to playlist'
-                        : 'Failed to add track',
+                        : widget.result == AddTrackResult.alreadyExists
+                            ? 'Track already in playlist'
+                            : 'Failed to add track',
                     style: TextStyle(
                       color: colors.onPrimary,
                       fontWeight: FontWeight.w600,

@@ -1,5 +1,8 @@
+import 'package:dio/dio.dart';
 import '../models/playlist.dart';
 import '../services/playlist_service.dart';
+
+enum AddTrackResult { success, alreadyExists, failed }
 
 class PlaylistRepository {
   final PlaylistApiService api;
@@ -35,12 +38,26 @@ class PlaylistRepository {
     }
   }
 
-  Future<bool> addTrackToPlaylist(String playlistId, String trackId) async {
+  Future<AddTrackResult> addTrackToPlaylist(
+      String playlistId, String trackId) async {
     try {
-      await api.addTrackToPlaylist(playlistId, trackId);
-      return true;
-    } catch (e) {
-      return false;
+      final res = await api.addTrackToPlaylist(playlistId, trackId);
+      final body = res.data as Map<String, dynamic>?;
+      if (body != null && body['success'] == false) {
+        final msg = (body['message'] as String? ?? '').toLowerCase();
+        if (msg.contains('already exists')) return AddTrackResult.alreadyExists;
+        return AddTrackResult.failed;
+      }
+      return AddTrackResult.success;
+    } on DioException catch (e) {
+      final body = e.response?.data as Map<String, dynamic>?;
+      if (body != null) {
+        final msg = (body['message'] as String? ?? '').toLowerCase();
+        if (msg.contains('already exists')) return AddTrackResult.alreadyExists;
+      }
+      return AddTrackResult.failed;
+    } catch (_) {
+      return AddTrackResult.failed;
     }
   }
 
