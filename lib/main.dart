@@ -7,7 +7,7 @@ import './themes/app_theme.dart';
 import './themes/app_colors.dart';
 import './themes/app_text_styles.dart';
 
-import './screens/music_taste_screen.dart';
+import './screens/match_screen.dart';
 import './screens/register_screen.dart';
 import './screens/home_screen.dart';
 import './screens/profile_screen.dart';
