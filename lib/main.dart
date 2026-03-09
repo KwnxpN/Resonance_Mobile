@@ -12,6 +12,7 @@ import './screens/register_screen.dart';
 import './screens/home_screen.dart';
 import './screens/playlist_screen.dart';
 import './screens/profile_screen.dart';
+import './widgets/mini_player.dart';
 
 // Allow all certificates (for development only)
 class MyHttpOverrides extends HttpOverrides {
@@ -122,7 +123,12 @@ class _MainScreenState extends State<MainScreen> {
           ],
         ),
       ),
-      body: _screens[_currentIndex],
+      body: Column(
+        children: [
+          Expanded(child: _screens[_currentIndex]),
+          const MiniPlayer(),
+        ],
+      ),
       bottomNavigationBar: Container(
         decoration: BoxDecoration(
           color: colors.background,

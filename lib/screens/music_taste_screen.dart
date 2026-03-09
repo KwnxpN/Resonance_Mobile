@@ -56,26 +56,10 @@ class _MusicTasteScreenState extends State<MusicTasteScreen> {
   }
 
   Track _convertModelToTrack(TrackModel m) {
-    String artist = '';
-    try {
-      if (m.artists.isNotEmpty) {
-        final a = m.artists[0];
-        artist = (a is Map && a['name'] != null)
-            ? a['name'].toString()
-            : a.toString();
-      }
-    } catch (_) {}
-
-    List<String> genres = [];
-    try {
-      genres = m.genres
-          .map((g) {
-            if (g is Map && g['name'] != null) return g['name'].toString();
-            return g.toString();
-          })
-          .cast<String>()
-          .toList();
-    } catch (_) {}
+    final artist = m.artist.isNotEmpty ? m.artist.split(',')[0].trim() : '';
+    final genres = m.genre.isNotEmpty
+        ? m.genre.split(',').map((g) => g.trim()).toList()
+        : <String>[];
 
     return Track(
       title: m.name,
@@ -83,7 +67,7 @@ class _MusicTasteScreenState extends State<MusicTasteScreen> {
       image: m.imageUrl,
       genre: genres,
       description: '',
-      duration: m.duration,
+      duration: m.duration ?? '',
     );
   }
 
