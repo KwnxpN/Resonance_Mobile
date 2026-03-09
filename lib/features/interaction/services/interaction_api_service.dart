@@ -3,7 +3,9 @@ import '../models/playlist_model.dart';
 import '../repositories/interaction_repository.dart';
 
 class InteractionService {
-  final InteractionRepository _repo = InteractionRepository();
+  final InteractionRepository _repo;
+
+  InteractionService(this._repo);
 
   Future<void> likeTrack(String userId, String trackId) async {
     final swipe = SwipeModel(
@@ -33,10 +35,7 @@ class InteractionService {
     return _repo.getUserSwipes(userId);
   }
 
-  Future<PlaylistModel> createPlaylist(
-    String userId,
-    String name,
-  ) {
+  Future<PlaylistModel> createPlaylist(String userId, String name) {
     return _repo.createPlaylist(userId, name);
   }
 

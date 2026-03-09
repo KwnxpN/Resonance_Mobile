@@ -20,10 +20,24 @@ class _MusicTasteScreenState extends State<MusicTasteScreen> {
   bool initialized = false;
   bool finished = false;
   bool loadingError = false;
-
+  String? userId;
   Map<String, int> genreCounter = {};
 
   void handleSwipe(Track track, bool liked) async {
+    if (userId == null) {
+      debugPrint("User not loaded yet");
+      return;
+    }
+    try {
+      if (liked) {
+        await ServiceLocator.interactionService.likeTrack(userId!, track.id);
+      } else {
+        await ServiceLocator.interactionService.dislikeTrack(userId!, track.id);
+      }
+    } catch (e) {
+      debugPrint("Swipe save failed: $e");
+    }
+
     if (liked) {
       for (final genre in track.genre) {
         genreCounter[genre] = (genreCounter[genre] ?? 0) + 1;
@@ -33,26 +47,36 @@ class _MusicTasteScreenState extends State<MusicTasteScreen> {
     setState(() {
       if (tracks.isNotEmpty) tracks.removeLast();
     });
-
-    if (tracks.isEmpty) {
-      debugPrint('All tracks swiped!');
-      debugPrint('User genre taste: $genreCounter');
-
-      try {
-        await ServiceLocator.musicRepository.saveUserTaste(genreCounter);
-        debugPrint("Taste saved");
-      } catch (e) {
-        debugPrint("Taste save failed: $e");
-      }
-
-      setState(() => finished = true);
+    if (tracks.length <= fetchThreshold) {
+      fetchMoreTracks();
     }
+    // if (tracks.isEmpty && !isFetchingMore) {
+    //   debugPrint('All tracks swiped!');
+    //   debugPrint('User genre taste: $genreCounter');
+
+    //   try {
+    //     await ServiceLocator.musicRepository.saveUserTaste(genreCounter);
+    //     debugPrint("Taste saved");
+    //   } catch (e) {
+    //     debugPrint("Taste save failed: $e");
+    //   }
+
+    //   setState(() => finished = true);
+    // }
   }
 
   @override
   void initState() {
     super.initState();
     futureTracks = ServiceLocator.musicRepository.getRandomTracks();
+    loadUser();
+  }
+
+  Future<void> loadUser() async {
+    final user = await ServiceLocator.userRepository.me();
+    setState(() {
+      userId = user?.userId;
+    });
   }
 
   Track _convertModelToTrack(TrackModel m) {
@@ -62,6 +86,7 @@ class _MusicTasteScreenState extends State<MusicTasteScreen> {
         : <String>[];
 
     return Track(
+      id: m.id,
       title: m.name,
       artist: artist.isNotEmpty ? artist : 'Unknown',
       image: m.imageUrl,
@@ -69,6 +94,27 @@ class _MusicTasteScreenState extends State<MusicTasteScreen> {
       description: '',
       duration: m.duration ?? '',
     );
+  }
+
+  bool isFetchingMore = false;
+  static const int fetchThreshold = 5;
+
+  Future<void> fetchMoreTracks() async {
+    if (isFetchingMore) return;
+
+    isFetchingMore = true;
+
+    try {
+      final newTracks = await ServiceLocator.musicRepository.getRandomTracks();
+
+      setState(() {
+        tracks.addAll(newTracks.map((m) => _convertModelToTrack(m)));
+      });
+    } catch (e) {
+      debugPrint("Fetch more tracks failed: $e");
+    }
+
+    isFetchingMore = false;
   }
 
   @override
@@ -117,12 +163,7 @@ class _MusicTasteScreenState extends State<MusicTasteScreen> {
                   }
 
                   if (tracks.isEmpty) {
-                    return const Center(
-                      child: Text(
-                        'No tracks available',
-                        style: TextStyle(color: Colors.white),
-                      ),
-                    );
+                    return const Center(child: CircularProgressIndicator());
                   }
 
                   return Stack(

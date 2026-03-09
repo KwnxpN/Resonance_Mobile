@@ -1,4 +1,5 @@
 class Track {
+  final String id;
   final String title;
   final String artist;
   final String image;
@@ -7,6 +8,7 @@ class Track {
   final String duration;
 
   Track({
+    required this.id,
     required this.title,
     required this.artist,
     required this.image,
@@ -17,6 +19,7 @@ class Track {
 
   factory Track.fromJson(Map<String, dynamic> json) {
     return Track(
+      id: json['id'] ?? '',
       title: json['title'] ?? '',
       artist: json['artist'] ?? '',
       image: json['image'] ?? '',
@@ -25,5 +28,4 @@ class Track {
       duration: json['duration'] ?? '',
     );
   }
-  
 }
