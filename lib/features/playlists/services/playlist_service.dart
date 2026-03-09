@@ -9,6 +9,10 @@ class PlaylistApiService {
     return _dio.get('/users/$userId/playlists');
   }
 
+  Future<Response> createPlaylist(String userId, String name) {
+    return _dio.post('/playlists', data: {'UserId': userId, 'Name': name});
+  }
+
   Future<Response> addTrackToPlaylist(String playlistId, String trackId) {
     return _dio.post('/playlists/$playlistId/tracks/$trackId');
   }
