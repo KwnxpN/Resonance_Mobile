@@ -8,14 +8,14 @@ class AuthApiService {
   Future<Response> register({
     required String email,
     required String password,
-    required String name,
+    required String displayName,
   }) {
     return _dio.post(
-      "/register",
+      '/register',
       data: {
-        "email": email,
-        "password": password,
-        "name": name,
+        'email': email,
+        'password': password,
+        'display_name': displayName,
       },
     );
   }
@@ -25,15 +25,15 @@ class AuthApiService {
     required String password,
   }) {
     return _dio.post(
-      "/login",
+      '/login',
       data: {
-        "email": email,
-        "password": password,
+        'email': email,
+        'password': password,
       },
     );
   }
 
-  Future<Response> me() {
-  return _dio.get("/me");
-}
+  Future<Response> logout() {
+    return _dio.post('/logout');
+  }
 }

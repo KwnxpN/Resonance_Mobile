@@ -5,6 +5,7 @@ class MenuOption extends StatelessWidget {
   final String title;
   final String? subtitle;
   final Color color;
+  final VoidCallback? onTap;
 
   const MenuOption({
     super.key,
@@ -12,11 +13,14 @@ class MenuOption extends StatelessWidget {
     required this.title,
     this.subtitle,
     required this.color,
+    this.onTap,
   });
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
       margin: const EdgeInsets.only(bottom: 16),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -60,6 +64,7 @@ class MenuOption extends StatelessWidget {
           Icon(Icons.chevron_right, color: Colors.white.withOpacity(0.5)),
         ],
       ),
+    ),
     );
   }
 }
