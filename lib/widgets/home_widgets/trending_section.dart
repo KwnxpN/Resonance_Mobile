@@ -65,24 +65,23 @@ class TrendingSection extends StatelessWidget {
                   return Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 16),
                     child: Column(
-                      children: pageItems.asMap().entries.map((entry) {
-                        final track = entry.value;
-                        final globalIndex =
-                            pageIndex * carouselPageSize + entry.key;
-                        return SongCard(
-                          track: track,
-                          onTap: () {
-                            Navigator.of(context, rootNavigator: true)
-                                .push(MaterialPageRoute(
-                                  builder: (_) => MusicPlaybackScreen(
-                                    tracks: tracks,
-                                    initialIndex: globalIndex,
-                                  ),
-                                ))
-                                .then((_) => onReturn());
-                          },
-                        );
-                      }).toList(),
+                      children: [
+                        for (int i = 0; i < pageItems.length; i++)
+                          SongCard(
+                            track: pageItems[i],
+                            onTap: () {
+                              Navigator.of(context, rootNavigator: true)
+                                  .push(MaterialPageRoute(
+                                    builder: (_) => MusicPlaybackScreen(
+                                      tracks: tracks,
+                                      initialIndex:
+                                          pageIndex * carouselPageSize + i,
+                                    ),
+                                  ))
+                                  .then((_) => onReturn());
+                            },
+                          ),
+                      ],
                     ),
                   );
                 },

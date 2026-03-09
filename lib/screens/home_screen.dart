@@ -93,29 +93,37 @@ class _HomeScreenState extends State<HomeScreen> {
       body: ListView(
         children: [
           const SizedBox(height: 16),
-          RecommendedSection(
-            future: _recommendedTracksFuture,
-            onRetry: _retryRecommended,
-            onReturn: _retryPlaylists,
+          RepaintBoundary(
+            child: RecommendedSection(
+              future: _recommendedTracksFuture,
+              onRetry: _retryRecommended,
+              onReturn: _retryPlaylists,
+            ),
           ),
           const SizedBox(height: 24),
-          TrendingSection(
-            future: _trendingTracksFuture,
-            onRetry: _retryTrending,
-            onReturn: _retryPlaylists,
+          RepaintBoundary(
+            child: TrendingSection(
+              future: _trendingTracksFuture,
+              onRetry: _retryTrending,
+              onReturn: _retryPlaylists,
+            ),
           ),
           const SizedBox(height: 24),
-          RecommendedPlaylistSection(
-            future: _recommendedPlaylistsFuture,
-            onRetry: _retryRecommendedPlaylists,
-            onReturn: _retryRecommendedPlaylists,
+          RepaintBoundary(
+            child: RecommendedPlaylistSection(
+              future: _recommendedPlaylistsFuture,
+              onRetry: _retryRecommendedPlaylists,
+              onReturn: _retryRecommendedPlaylists,
+            ),
           ),
           const SizedBox(height: 24),
-          PlaylistSection(
-            future: _playlistsFuture,
-            onRetry: _retryPlaylists,
-            onReturn: _retryPlaylists,
-            onCreate: _showCreatePlaylistSheet,
+          RepaintBoundary(
+            child: PlaylistSection(
+              future: _playlistsFuture,
+              onRetry: _retryPlaylists,
+              onReturn: _retryPlaylists,
+              onCreate: _showCreatePlaylistSheet,
+            ),
           ),
           const SizedBox(height: 24),
         ],
