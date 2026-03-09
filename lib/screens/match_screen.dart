@@ -439,6 +439,8 @@ class MatchScreen extends StatelessWidget {
                       builder: (context) => ChatScreen(
                         userName: '${m['name']}',
                         userImage: m['image'] as String,
+                        matchId: "test-room-1",
+                        currentUserId: "CurrentUserId",
                       ),
                     ),
                   );

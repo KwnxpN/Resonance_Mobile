@@ -1,16 +1,111 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:web_socket_channel/web_socket_channel.dart';
 import '../themes/app_colors.dart';
 import '../themes/app_text_styles.dart';
 
-class ChatScreen extends StatelessWidget {
+// --- Simple Chat Message Model ---
+class ChatMessage {
+  final String userId;
+  final String content;
+
+  ChatMessage({required this.userId, required this.content});
+
+  factory ChatMessage.fromJson(Map<String, dynamic> json) {
+    return ChatMessage(
+      userId: json['UserID'] ?? json['user_id'] ?? '',
+      content: json['Content'] ?? json['content'] ?? '',
+    );
+  }
+
+  Map<String, dynamic> toJson() => {
+    'user_id': userId,
+    'content': content,
+  };
+}
+
+class ChatScreen extends StatefulWidget {
   final String userName;
   final String userImage;
+  final String matchId;       // Used as room_id
+  final String currentUserId; // Required for backend identity
 
   const ChatScreen({
     super.key,
     required this.userName,
     required this.userImage,
+    required this.matchId,
+    required this.currentUserId,
   });
+
+  @override
+  State<ChatScreen> createState() => _ChatScreenState();
+}
+
+class _ChatScreenState extends State<ChatScreen> {
+  late WebSocketChannel _channel;
+  final TextEditingController _textController = TextEditingController();
+  final List<ChatMessage> _messages = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _connectWebSocket();
+  }
+
+  Future<void> _connectWebSocket() async {
+    final wsUrl = Uri.parse(
+      'ws://10.0.2.2:8000/ws/chat/${widget.matchId}?user_id=${widget.currentUserId}',
+    );
+
+    debugPrint('🔄 Attempting to connect to WebSocket...');
+    debugPrint('🔗 URL: $wsUrl');
+
+    try {
+      _channel = WebSocketChannel.connect(wsUrl);
+
+      // Await the ready getter to confirm the connection is established
+      await _channel.ready;
+      debugPrint(
+        '✅ WebSocket connected successfully to room: ${widget.matchId}!',
+      );
+
+      _channel.stream.listen(
+        (message) {
+          debugPrint('📥 Received message: $message');
+          final decoded = jsonDecode(message);
+          setState(() {
+            _messages.add(ChatMessage.fromJson(decoded));
+          });
+        },
+        onError: (error) => debugPrint('❌ WebSocket error: $error'),
+        onDone: () => debugPrint('⚠️ WebSocket connection closed'),
+      );
+    } catch (e) {
+      // This will catch immediate connection failures (e.g., server offline)
+      debugPrint('🚨 Failed to connect to WebSocket: $e');
+    }
+  }
+
+  void _sendMessage() {
+    if (_textController.text.trim().isEmpty) return;
+
+    final msgContent = _textController.text.trim();
+
+    // Updated to match index.html logic: only send 'content'
+    final message = {'content': msgContent};
+
+    // Send the message to the Go backend
+    _channel.sink.add(jsonEncode(message));
+    _textController.clear();
+  }
+
+  @override
+  void dispose() {
+    _channel.sink.close();
+    _textController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -21,10 +116,7 @@ class ChatScreen extends StatelessWidget {
       appBar: _buildAppBar(context, colors),
       body: Column(
         children: [
-          // Chat messages
           Expanded(child: _buildChatBody(context, colors)),
-
-          // Message input
           _buildMessageInput(context, colors),
         ],
       ),
@@ -43,7 +135,6 @@ class ChatScreen extends StatelessWidget {
       titleSpacing: 0,
       title: Row(
         children: [
-          // Avatar
           Container(
             width: 38,
             height: 38,
@@ -51,7 +142,7 @@ class ChatScreen extends StatelessWidget {
               shape: BoxShape.circle,
               border: Border.all(color: colors.primary, width: 2),
               image: DecorationImage(
-                image: NetworkImage(userImage),
+                image: NetworkImage(widget.userImage),
                 fit: BoxFit.cover,
               ),
             ),
@@ -61,7 +152,7 @@ class ChatScreen extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                userName,
+                widget.userName,
                 style: AppTextStyles.textMd(context).copyWith(
                   color: colors.onBackground,
                   fontWeight: FontWeight.w600,
@@ -73,9 +164,7 @@ class ChatScreen extends StatelessWidget {
                   const SizedBox(width: 4),
                   Text(
                     'Listening to Daft Punk',
-                    style: AppTextStyles.textXs(
-                      context,
-                    ).copyWith(color: colors.muted),
+                    style: AppTextStyles.textXs(context).copyWith(color: colors.muted),
                   ),
                 ],
               ),
@@ -83,88 +172,39 @@ class ChatScreen extends StatelessWidget {
           ),
         ],
       ),
-      actions: [
-        IconButton(
-          icon: Icon(Icons.more_vert, color: colors.onBackground),
-          onPressed: () {},
-        ),
-      ],
     );
   }
 
   // ─────────────────── Chat Body ───────────────────
   Widget _buildChatBody(BuildContext context, AppColors colors) {
-    return ListView(
+    return ListView.builder(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      children: [
-        // System message
-        _buildSystemMessage(
-          context,
-          colors,
-          '🎵 You matched! You both like Tame Impala.',
-        ),
-        const SizedBox(height: 16),
+      itemCount: _messages.length,
+      itemBuilder: (context, index) {
+        final msg = _messages[index];
+        final isMe = msg.userId == widget.currentUserId;
 
-        // Incoming message
-        _buildIncomingMessage(context, colors, 'Hey! Nice taste in music. 👋'),
-        const SizedBox(height: 12),
-
-        // Outgoing message
-        _buildOutgoingMessage(
-          context,
-          colors,
-          'Thanks! Have you heard their new single?',
-        ),
-        const SizedBox(height: 12),
-
-        // Incoming message with song card
-        _buildIncomingMessage(context, colors, 'Yeah, check this out:'),
-        const SizedBox(height: 8),
-        _buildSongCard(context, colors),
-        const SizedBox(height: 16),
-
-        // Typing indicator
-        _buildTypingIndicator(context, colors),
-      ],
+        return Padding(
+          padding: const EdgeInsets.only(bottom: 12.0),
+          child: isMe
+              ? _buildOutgoingMessage(context, colors, msg.content)
+              : _buildIncomingMessage(context, colors, msg.content),
+        );
+      },
     );
   }
 
-  Widget _buildSystemMessage(
-    BuildContext context,
-    AppColors colors,
-    String text,
-  ) {
-    return Center(
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-        decoration: BoxDecoration(
-          color: colors.surface.withValues(alpha: 0.6),
-          borderRadius: BorderRadius.circular(20),
-        ),
-        child: Text(
-          text,
-          style: AppTextStyles.textXs(context).copyWith(color: colors.muted),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildIncomingMessage(
-    BuildContext context,
-    AppColors colors,
-    String text,
-  ) {
+  Widget _buildIncomingMessage(BuildContext context, AppColors colors, String text) {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.end,
       children: [
-        // Small avatar
         Container(
           width: 28,
           height: 28,
           decoration: BoxDecoration(
             shape: BoxShape.circle,
             image: DecorationImage(
-              image: NetworkImage(userImage),
+              image: NetworkImage(widget.userImage),
               fit: BoxFit.cover,
             ),
           ),
@@ -184,26 +224,20 @@ class ChatScreen extends StatelessWidget {
             ),
             child: Text(
               text,
-              style: AppTextStyles.textSm(
-                context,
-              ).copyWith(color: colors.onSurface),
+              style: AppTextStyles.textSm(context).copyWith(color: colors.onSurface),
             ),
           ),
         ),
-        const SizedBox(width: 60), // right spacing
+        const SizedBox(width: 60),
       ],
     );
   }
 
-  Widget _buildOutgoingMessage(
-    BuildContext context,
-    AppColors colors,
-    String text,
-  ) {
+  Widget _buildOutgoingMessage(BuildContext context, AppColors colors, String text) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.end,
       children: [
-        const SizedBox(width: 60), // left spacing
+        const SizedBox(width: 60),
         Flexible(
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
@@ -218,121 +252,11 @@ class ChatScreen extends StatelessWidget {
             ),
             child: Text(
               text,
-              style: AppTextStyles.textSm(
-                context,
-              ).copyWith(color: colors.onPrimary),
+              style: AppTextStyles.textSm(context).copyWith(color: colors.onPrimary),
             ),
           ),
         ),
       ],
-    );
-  }
-
-  Widget _buildSongCard(BuildContext context, AppColors colors) {
-    return Row(
-      children: [
-        const SizedBox(width: 36), // align with messages
-        Flexible(
-          child: Container(
-            padding: const EdgeInsets.all(10),
-            decoration: BoxDecoration(
-              color: colors.surface,
-              borderRadius: BorderRadius.circular(14),
-              border: Border.all(color: colors.border, width: 0.8),
-            ),
-            child: Row(
-              children: [
-                // Album art placeholder
-                Container(
-                  width: 44,
-                  height: 44,
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(8),
-                    color: colors.accent,
-                    image: const DecorationImage(
-                      image: NetworkImage(
-                        'https://images.unsplash.com/photo-1514924013411-cbf25faa35bb?w=100&h=100&fit=crop',
-                      ),
-                      fit: BoxFit.cover,
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'The Less I Know The Better',
-                        style: AppTextStyles.textSm(context).copyWith(
-                          color: colors.onSurface,
-                          fontWeight: FontWeight.w600,
-                        ),
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      Text(
-                        'Tame Impala',
-                        style: AppTextStyles.textXs(
-                          context,
-                        ).copyWith(color: colors.muted),
-                      ),
-                    ],
-                  ),
-                ),
-                Icon(Icons.favorite, color: colors.primary, size: 20),
-              ],
-            ),
-          ),
-        ),
-        const SizedBox(width: 60),
-      ],
-    );
-  }
-
-  Widget _buildTypingIndicator(BuildContext context, AppColors colors) {
-    return Row(
-      children: [
-        Container(
-          width: 28,
-          height: 28,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            image: DecorationImage(
-              image: NetworkImage(userImage),
-              fit: BoxFit.cover,
-            ),
-          ),
-        ),
-        const SizedBox(width: 8),
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-          decoration: BoxDecoration(
-            color: colors.surface,
-            borderRadius: BorderRadius.circular(18),
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              _dot(colors, 0.4),
-              const SizedBox(width: 4),
-              _dot(colors, 0.6),
-              const SizedBox(width: 4),
-              _dot(colors, 0.9),
-            ],
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _dot(AppColors colors, double opacity) {
-    return Container(
-      width: 7,
-      height: 7,
-      decoration: BoxDecoration(
-        color: colors.muted.withValues(alpha: opacity),
-        shape: BoxShape.circle,
-      ),
     );
   }
 
@@ -346,19 +270,13 @@ class ChatScreen extends StatelessWidget {
       ),
       child: Row(
         children: [
-          // Mic icon
           Container(
             width: 40,
             height: 40,
-            decoration: BoxDecoration(
-              color: colors.surface,
-              shape: BoxShape.circle,
-            ),
+            decoration: BoxDecoration(color: colors.surface, shape: BoxShape.circle),
             child: Icon(Icons.music_note, color: colors.primary, size: 20),
           ),
           const SizedBox(width: 8),
-
-          // Text field
           Expanded(
             child: Container(
               height: 42,
@@ -367,38 +285,27 @@ class ChatScreen extends StatelessWidget {
                 color: colors.surface,
                 borderRadius: BorderRadius.circular(24),
               ),
-              alignment: Alignment.centerLeft,
-              child: Text(
-                'Message...',
-                style: AppTextStyles.textSm(
-                  context,
-                ).copyWith(color: colors.muted),
+              child: TextField(
+                controller: _textController,
+                style: AppTextStyles.textSm(context).copyWith(color: colors.onSurface),
+                decoration: InputDecoration(
+                  hintText: 'Message...',
+                  hintStyle: AppTextStyles.textSm(context).copyWith(color: colors.muted),
+                  border: InputBorder.none,
+                ),
+                onSubmitted: (_) => _sendMessage(),
               ),
             ),
           ),
           const SizedBox(width: 8),
-
-          // Mic button
-          Container(
-            width: 40,
-            height: 40,
-            decoration: BoxDecoration(
-              color: colors.surface,
-              shape: BoxShape.circle,
+          GestureDetector(
+            onTap: _sendMessage,
+            child: Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(color: colors.primary, shape: BoxShape.circle),
+              child: Icon(Icons.send, color: colors.onPrimary, size: 18),
             ),
-            child: Icon(Icons.mic, color: colors.muted, size: 20),
-          ),
-          const SizedBox(width: 8),
-
-          // Send button
-          Container(
-            width: 40,
-            height: 40,
-            decoration: BoxDecoration(
-              color: colors.primary,
-              shape: BoxShape.circle,
-            ),
-            child: Icon(Icons.send, color: colors.onPrimary, size: 18),
           ),
         ],
       ),
