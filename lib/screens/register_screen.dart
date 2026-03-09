@@ -33,7 +33,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
       await auth.register(
         email: emailCtrl.text.trim(),
         password: passCtrl.text,
-        name: nameCtrl.text.trim(),
+        displayName: nameCtrl.text.trim(),
       );
 
       if (!mounted) return;
@@ -92,8 +92,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
                   if (error != null) ...[
                     const SizedBox(height: 12),
-                    Text(error!,
-                        style: const TextStyle(color: Colors.redAccent)),
+                    Text(
+                      error!,
+                      style: const TextStyle(color: Colors.redAccent),
+                    ),
                   ],
 
                   const SizedBox(height: 24),
@@ -101,6 +103,16 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   _submitButton(
                     loading ? "Loading..." : "Start Listening",
                     loading ? null : register,
+                  ),
+
+                  const SizedBox(height: 20),
+
+                  TextButton(
+                    onPressed: () => Navigator.pushNamed(context, "/login"),
+                    child: const Text(
+                      "You in the club? Log in",
+                      style: TextStyle(color: Colors.pinkAccent),
+                    ),
                   ),
                 ],
               ),
@@ -120,9 +132,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
         if (v == null || v.trim().isEmpty) {
           return "Name is required";
         }
-        if (v.trim().length < 3) {
-          return "Name too short";
-        }
         return null;
       },
     );
@@ -138,7 +147,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
         if (v == null || v.isEmpty) return "Email required";
 
         final ok = RegExp(r'^[^@]+@[^@]+\.[^@]+').hasMatch(v);
-        if (!ok) return "Invalid email";
+        if (!ok) return "Invalid email format";
 
         return null;
       },
@@ -161,7 +170,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
       ),
       validator: (v) {
         if (v == null || v.isEmpty) return "Password required";
-        if (v.length < 8) return "Min 8 characters";
+        if (v.length < 6) return "Min 6 characters";
         return null;
       },
     );

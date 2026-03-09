@@ -12,6 +12,7 @@ import './screens/register_screen.dart';
 import './screens/home_screen.dart';
 import './screens/playlist_screen.dart';
 import './screens/profile_screen.dart';
+import './widgets/mini_player.dart';
 
 // Allow all certificates (for development only)
 class MyHttpOverrides extends HttpOverrides {
@@ -45,8 +46,41 @@ class MyApp extends StatelessWidget {
         '/music_taste': (context) => const MatchScreen(),
         '/playlist': (context) => const PlaylistScreen(),
         '/profile': (context) => const ProfileScreen(),
+        '/home': (context) => const MainScreen(),
       },
-      home: const MainScreen(),
+      home: const AuthGate(),
+    );
+  }
+}
+
+class AuthGate extends StatefulWidget {
+  const AuthGate({super.key});
+
+  @override
+  State<AuthGate> createState() => _AuthGateState();
+}
+
+class _AuthGateState extends State<AuthGate> {
+  @override
+  void initState() {
+    super.initState();
+    _checkSession();
+  }
+
+  Future<void> _checkSession() async {
+    final loggedIn = await ServiceLocator.userRepository.checkSession();
+    if (!mounted) return;
+    if (loggedIn) {
+      Navigator.pushReplacementNamed(context, '/home');
+    } else {
+      Navigator.pushReplacementNamed(context, '/login');
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return const Scaffold(
+      body: Center(child: CircularProgressIndicator()),
     );
   }
 }
@@ -60,6 +94,12 @@ class MainScreen extends StatefulWidget {
 
 class _MainScreenState extends State<MainScreen> {
   int _currentIndex = 0;
+
+  Future<void> _logout() async {
+    await ServiceLocator.authRepository.logout();
+    if (!mounted) return;
+    Navigator.pushNamedAndRemoveUntil(context, '/login', (_) => false);
+  }
 
   late final List<Widget> _screens = [
     const HomeScreen(),
@@ -78,17 +118,18 @@ class _MainScreenState extends State<MainScreen> {
         elevation: 0,
         title: Row(
           children: [
-            Row(
-              children: [
-                Icon(Icons.graphic_eq, color: colors.primary, size: 32),
-                const SizedBox(width: 8),
-                Text("RESONANCE", style: AppTextStyles.textXl(context)),
-              ],
-            ),
+            Icon(Icons.graphic_eq, color: colors.primary, size: 32),
+            const SizedBox(width: 8),
+            Text("RESONANCE", style: AppTextStyles.textXl(context)),
           ],
         ),
       ),
-      body: _screens[_currentIndex],
+      body: Column(
+        children: [
+          Expanded(child: _screens[_currentIndex]),
+          const MiniPlayer(),
+        ],
+      ),
       bottomNavigationBar: Container(
         decoration: BoxDecoration(
           color: colors.background,

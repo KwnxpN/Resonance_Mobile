@@ -5,8 +5,8 @@ class MusicApiService {
 
   MusicApiService(this._dio);
 
-  Future<Response> fetchTracks() {
-    return _dio.get('/tracks');
+  Future<Response> fetchTracks({Map<String, dynamic>? query}) {
+    return _dio.get('/tracks', queryParameters: query);
   }
 
   Future<Response> fetchRandomTracks() {
