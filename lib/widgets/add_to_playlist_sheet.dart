@@ -5,7 +5,7 @@ import '../themes/app_colors.dart';
 import '../themes/app_text_styles.dart';
 
 class AddToPlaylistSheet extends StatefulWidget {
-  final List<PersonalPlaylistModel> playlists;
+  final List<PlaylistModel> playlists;
   final String trackId;
 
   const AddToPlaylistSheet({

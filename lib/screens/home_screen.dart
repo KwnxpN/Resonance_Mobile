@@ -5,6 +5,7 @@ import '../features/playlists/models/playlist.dart';
 import '../widgets/home_widgets/recommended_section.dart';
 import '../widgets/home_widgets/trending_section.dart';
 import '../widgets/home_widgets/playlist_section.dart';
+import '../widgets/home_widgets/recommended_playlist_section.dart';
 import '../widgets/home_widgets/create_playlist_sheet.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -17,7 +18,8 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   late Future<List<TrackModel>> _recommendedTracksFuture;
   late Future<List<TrackModel>> _trendingTracksFuture;
-  late Future<List<PersonalPlaylistModel>> _playlistsFuture;
+  late Future<List<PlaylistModel>> _playlistsFuture;
+  late Future<PlaylistModel> _recommendedPlaylistsFuture;
   late final Future<dynamic> _userFuture;
 
   @override
@@ -29,12 +31,20 @@ class _HomeScreenState extends State<HomeScreen> {
     _trendingTracksFuture =
         ServiceLocator.musicRepository.getRandomTracks();
     _playlistsFuture = _fetchPlaylists();
+    _recommendedPlaylistsFuture = _fetchRecommendedPlaylist();
   }
 
-  Future<List<PersonalPlaylistModel>> _fetchPlaylists() async {
+  Future<List<PlaylistModel>> _fetchPlaylists() async {
     final user = await _userFuture;
     if (user == null) return [];
     return ServiceLocator.playlistRepository.getPersonalPlaylists(user.userId);
+  }
+
+  Future<PlaylistModel> _fetchRecommendedPlaylist() async {
+    final user = await _userFuture;
+    if (user == null) return PlaylistModel(id: '', userId: '', name: '', tracks: []);
+    return ServiceLocator.playlistRepository
+        .getRecommendedPlaylist(user.userId);
   }
 
   void _retryRecommended() {
@@ -54,6 +64,12 @@ class _HomeScreenState extends State<HomeScreen> {
   void _retryPlaylists() {
     setState(() {
       _playlistsFuture = _fetchPlaylists();
+    });
+  }
+
+  void _retryRecommendedPlaylists() {
+    setState(() {
+      _recommendedPlaylistsFuture = _fetchRecommendedPlaylist();
     });
   }
 
@@ -87,6 +103,12 @@ class _HomeScreenState extends State<HomeScreen> {
             future: _trendingTracksFuture,
             onRetry: _retryTrending,
             onReturn: _retryPlaylists,
+          ),
+          const SizedBox(height: 24),
+          RecommendedPlaylistSection(
+            future: _recommendedPlaylistsFuture,
+            onRetry: _retryRecommendedPlaylists,
+            onReturn: _retryRecommendedPlaylists,
           ),
           const SizedBox(height: 24),
           PlaylistSection(

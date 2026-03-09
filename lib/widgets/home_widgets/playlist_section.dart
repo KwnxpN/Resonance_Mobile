@@ -4,7 +4,7 @@ import 'playlist_card.dart';
 import 'section_error.dart';
 
 class PlaylistSection extends StatelessWidget {
-  final Future<List<PersonalPlaylistModel>> future;
+  final Future<List<PlaylistModel>> future;
   final VoidCallback onRetry;
   final VoidCallback onReturn;
   final VoidCallback onCreate;
@@ -42,7 +42,7 @@ class PlaylistSection extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 8),
-        FutureBuilder<List<PersonalPlaylistModel>>(
+        FutureBuilder<List<PlaylistModel>>(
           future: future,
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {

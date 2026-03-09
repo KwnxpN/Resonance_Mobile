@@ -5,7 +5,7 @@ import '../../themes/app_colors.dart';
 import '../../themes/app_text_styles.dart';
 
 class PlaylistCard extends StatelessWidget {
-  final PersonalPlaylistModel playlist;
+  final PlaylistModel playlist;
   final VoidCallback? onReturn;
 
   const PlaylistCard({super.key, required this.playlist, this.onReturn});
