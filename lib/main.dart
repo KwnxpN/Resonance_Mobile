@@ -19,14 +19,17 @@ class MyHttpOverrides extends HttpOverrides {
   @override
   HttpClient createHttpClient(SecurityContext? context) {
     return super.createHttpClient(context)
-      ..badCertificateCallback = (X509Certificate cert, String host, int port) => true;
+      ..badCertificateCallback =
+          (X509Certificate cert, String host, int port) => true;
   }
 }
 
 void main() {
+  WidgetsFlutterBinding.ensureInitialized();
+
   // Enable certificate bypass for development
   HttpOverrides.global = MyHttpOverrides();
-  
+
   ServiceLocator.init();
   runApp(const MyApp());
 }
@@ -78,9 +81,7 @@ class _AuthGateState extends State<AuthGate> {
 
   @override
   Widget build(BuildContext context) {
-    return const Scaffold(
-      body: Center(child: CircularProgressIndicator()),
-    );
+    return const Scaffold(body: Center(child: CircularProgressIndicator()));
   }
 }
 
@@ -94,12 +95,6 @@ class MainScreen extends StatefulWidget {
 class _MainScreenState extends State<MainScreen> {
   int _currentIndex = 0;
 
-  Future<void> _logout() async {
-    await ServiceLocator.authRepository.logout();
-    if (!mounted) return;
-    Navigator.pushNamedAndRemoveUntil(context, '/login', (_) => false);
-  }
-  
   late final List<Widget> _screens = [
     const HomeScreen(),
     const PlaylistScreen(),
@@ -152,8 +147,8 @@ class _MainScreenState extends State<MainScreen> {
               items: const [
                 BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
                 BottomNavigationBarItem(
-                  icon: Icon(Icons.explore),
-                  label: 'Discover',
+                  icon: Icon(Icons.library_music),
+                  label: 'Swipes',
                 ),
                 BottomNavigationBarItem(
                   icon: Icon(Icons.group),
