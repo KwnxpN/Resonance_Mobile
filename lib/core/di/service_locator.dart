@@ -1,4 +1,6 @@
 import 'package:dio/dio.dart';
+import 'package:flutter_project/core/network/interaction_dio.dart';
+import 'package:flutter_project/features/interaction/services/interaction_api_service.dart';
 import '../../features/musics/services/music_api_service.dart';
 import '../../features/musics/repositories/music_repository.dart';
 
@@ -20,8 +22,9 @@ import '../../features/match/repositories/match_repository.dart';
 import '../../core/network/auth_dio.dart';
 import '../../core/network/music_dio.dart';
 import '../../core/network/user_dio.dart';
-import '../../core/network/interaction_dio.dart';
 import '../../core/player/player_controller.dart';
+
+import '../../features/interaction/repositories/interaction_repository.dart';
 import '../../core/network/match_dio.dart';
 
 class ServiceLocator {
@@ -29,13 +32,14 @@ class ServiceLocator {
   static late final Dio musicDio;
   static late final Dio userDio;
   static late final Dio interactionDio;
+  static late final MusicApiService musicApiService;
+  static late final MusicRepository musicRepository;
   static late final Dio matchDio;
 
   static late final AuthRepository authRepository;
   static late final UserRepository userRepository;
-
-  static late final MusicApiService musicApiService;
-  static late final MusicRepository musicRepository;
+  static late final InteractionRepository interactionRepository;
+  static late final InteractionService interactionService;
 
   static late final PlaylistRepository playlistRepository;
   static late final SwipeRepository swipeRepository;
@@ -56,8 +60,11 @@ class ServiceLocator {
 
     authRepository = AuthRepository(AuthApiService(authDio));
     userRepository = UserRepository(UserApiService(userDio));
+    interactionRepository = InteractionRepository();
+    interactionService = InteractionService(interactionRepository);
     playlistRepository = PlaylistRepository(PlaylistApiService(interactionDio));
     swipeRepository = SwipeRepository(SwipeApiService(interactionDio));
+
     matchApiService = MatchApiService(matchDio);
     matchRepository = MatchRepository(matchApiService);
   }

@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
-import '../models/track.dart';
+import '../../../models/track.dart';
 import 'card_image.dart';
 import 'card_info.dart';
-import 'card_actions.dart';
 
 class SwipeCard extends StatelessWidget {
   final Track track;
@@ -29,14 +28,16 @@ class SwipeCard extends StatelessWidget {
             colors: [Color(0xFF2B0F2F), Color(0xFF120914)],
           ),
         ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+        child: Stack(
           children: [
-            CardImage(track: track),
-            CardInfo(track: track),
-            const Spacer(),
-            CardActions(onLike: onLike, onDislike: onDislike),
-            const SizedBox(height: 20),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                CardImage(track: track),
+                CardInfo(track: track),
+                const SizedBox(height: 50)
+              ],
+            ),
           ],
         ),
       ),

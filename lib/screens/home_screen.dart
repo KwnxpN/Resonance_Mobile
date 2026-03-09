@@ -26,10 +26,10 @@ class _HomeScreenState extends State<HomeScreen> {
   void initState() {
     super.initState();
     _userFuture = ServiceLocator.userRepository.me();
-    _recommendedTracksFuture =
-        ServiceLocator.musicRepository.getTracks(query: {'limit': 30});
-    _trendingTracksFuture =
-        ServiceLocator.musicRepository.getRandomTracks();
+    _recommendedTracksFuture = ServiceLocator.musicRepository.getTracks(
+      query: {'limit': 30},
+    );
+    _trendingTracksFuture = ServiceLocator.musicRepository.getRandomTracks();
     _playlistsFuture = _fetchPlaylists();
     _recommendedPlaylistsFuture = _fetchRecommendedPlaylist();
   }
@@ -42,28 +42,36 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Future<PlaylistModel> _fetchRecommendedPlaylist() async {
     final user = await _userFuture;
-    if (user == null) return PlaylistModel(id: '', userId: '', name: '', tracks: []);
-    return ServiceLocator.playlistRepository
-        .getRecommendedPlaylist(user.userId);
+    if (user == null)
+      return PlaylistModel(id: '', userId: '', name: '', tracks: []);
+    return ServiceLocator.playlistRepository.getRecommendedPlaylist(
+      user.userId,
+    );
   }
 
   void _retryRecommended() {
     setState(() {
-      _recommendedTracksFuture =
-          ServiceLocator.musicRepository.getTracks(query: {'limit': 30});
+      _recommendedTracksFuture = ServiceLocator.musicRepository.getTracks(
+        query: {'limit': 30},
+      );
     });
   }
 
   void _retryTrending() {
     setState(() {
-      _trendingTracksFuture =
-          ServiceLocator.musicRepository.getRandomTracks();
+      _trendingTracksFuture = ServiceLocator.musicRepository.getRandomTracks();
     });
   }
 
   void _retryPlaylists() {
     setState(() {
       _playlistsFuture = _fetchPlaylists();
+    });
+  }
+
+  void fetchRecommendedPlaylist() {
+    setState(() {
+      _recommendedPlaylistsFuture = _fetchRecommendedPlaylist();
     });
   }
 
@@ -82,8 +90,10 @@ class _HomeScreenState extends State<HomeScreen> {
     if (name == null || name.trim().isEmpty) return;
     final user = await _userFuture;
     if (user == null) return;
-    final success = await ServiceLocator.playlistRepository
-        .createPlaylist(user.userId, name.trim());
+    final success = await ServiceLocator.playlistRepository.createPlaylist(
+      user.userId,
+      name.trim(),
+    );
     if (success && mounted) _retryPlaylists();
   }
 

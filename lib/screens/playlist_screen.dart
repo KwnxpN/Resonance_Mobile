@@ -46,9 +46,17 @@ class _PlaylistScreenState extends State<PlaylistScreen> {
         (i + batchSize).clamp(0, _trackIds.length),
       );
       final batchResults = await Future.wait(
-        batch.map((id) => ServiceLocator.musicRepository.getTrackById(id)),
+        batch.map((id) async {
+          try {
+            return await ServiceLocator.musicRepository.getTrackById(id);
+          } catch (e) {
+            debugPrint('Skip track $id because API failed');
+            return null;
+          }
+        }),
       );
-      results.addAll(batchResults);
+
+      results.addAll(batchResults.whereType<TrackModel>());
     }
     return results;
   }

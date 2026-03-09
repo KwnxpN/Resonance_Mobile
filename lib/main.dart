@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'dart:io';
 import 'package:flutter_project/screens/login_screen.dart';
+import 'package:flutter_project/screens/music_taste_screen.dart';
 import './core/di/service_locator.dart';
 
 import './themes/app_theme.dart';
@@ -10,7 +11,6 @@ import './themes/app_text_styles.dart';
 import './screens/register_screen.dart';
 import './screens/home_screen.dart';
 import './screens/profile_screen.dart';
-import './screens/music_taste_screen.dart';
 import './screens/match_screen.dart';
 import './widgets/mini_player.dart';
 
@@ -45,7 +45,7 @@ class MyApp extends StatelessWidget {
       routes: {
         '/login': (context) => const LoginScreen(),
         '/register': (context) => const RegisterScreen(),
-        '/music_taste': (context) => const MusicTasteScreen(),
+        '/music_taste': (context) => const MatchScreen(),
         '/profile': (context) => const ProfileScreen(),
         '/home': (context) => const MainScreen(),
       },
@@ -94,6 +94,7 @@ class MainScreen extends StatefulWidget {
 class _MainScreenState extends State<MainScreen> {
   int _currentIndex = 0;
 
+  final homeKey = GlobalKey<State<HomeScreen>>();
   final List<GlobalKey<NavigatorState>> _navigatorKeys = [
     GlobalKey<NavigatorState>(),
     GlobalKey<NavigatorState>(),
@@ -101,8 +102,8 @@ class _MainScreenState extends State<MainScreen> {
     GlobalKey<NavigatorState>(),
   ];
 
-  static const List<Widget> _screens = [
-    HomeScreen(),
+  late final List<Widget> _screens = [
+    HomeScreen(key: homeKey),
     MusicTasteScreen(),
     MatchScreen(),
     ProfileScreen(),
@@ -140,9 +141,8 @@ class _MainScreenState extends State<MainScreen> {
                   _screens.length,
                   (i) => Navigator(
                     key: _navigatorKeys[i],
-                    onGenerateRoute: (_) => MaterialPageRoute(
-                      builder: (_) => _screens[i],
-                    ),
+                    onGenerateRoute: (_) =>
+                        MaterialPageRoute(builder: (_) => _screens[i]),
                   ),
                 ),
               ),
@@ -162,7 +162,13 @@ class _MainScreenState extends State<MainScreen> {
             height: 80,
             child: BottomNavigationBar(
               currentIndex: _currentIndex,
-              onTap: (index) => setState(() => _currentIndex = index),
+              onTap: (index) {
+                if (index == 0) {
+                  (homeKey.currentState as dynamic)?.fetchRecommendedPlaylist();
+                }
+
+                setState(() => _currentIndex = index);
+              },
 
               type: BottomNavigationBarType.fixed,
               backgroundColor: colors.background,

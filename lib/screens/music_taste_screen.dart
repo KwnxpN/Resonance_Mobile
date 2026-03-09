@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import '../models/track.dart';
-import '../widgets/swipe_card.dart';
-import '../widgets/music_taste_app_bar.dart';
-import '../widgets/swipeable_card.dart';
-import '../widgets/music_taste_result.dart';
+import '../widgets/music_taste_widgets/card/swipeable_card.dart';
 import '../core/di/service_locator.dart';
 import '../features/musics/models/music_model.dart';
+import '../widgets/music_taste_widgets/card/card_actions.dart';
+import '../widgets/music_taste_widgets/track_card_stack.dart';
+import '../widgets/music_taste_widgets/track_mapper.dart';
 
 class MusicTasteScreen extends StatefulWidget {
   const MusicTasteScreen({super.key});
@@ -15,59 +15,95 @@ class MusicTasteScreen extends StatefulWidget {
 }
 
 class _MusicTasteScreenState extends State<MusicTasteScreen> {
+  GlobalKey<SwipeableCardState> swipeKey = GlobalKey();
   late Future<List<TrackModel>> futureTracks;
+
+
   List<Track> tracks = [];
   bool initialized = false;
-  bool finished = false;
-  bool loadingError = false;
 
-  Map<String, int> genreCounter = {};
+  String? userId;
+  final Map<String, int> genreCounter = {};
 
-  void handleSwipe(Track track, bool liked) async {
-    if (liked) {
-      for (final genre in track.genre) {
-        genreCounter[genre] = (genreCounter[genre] ?? 0) + 1;
-      }
-    }
-
-    setState(() {
-      if (tracks.isNotEmpty) tracks.removeLast();
-    });
-
-    if (tracks.isEmpty) {
-      debugPrint('All tracks swiped!');
-      debugPrint('User genre taste: $genreCounter');
-
-      try {
-        await ServiceLocator.musicRepository.saveUserTaste(genreCounter);
-        debugPrint("Taste saved");
-      } catch (e) {
-        debugPrint("Taste save failed: $e");
-      }
-
-      setState(() => finished = true);
-    }
-  }
+  bool isFetchingMore = false;
+  static const int fetchThreshold = 10;
 
   @override
   void initState() {
     super.initState();
     futureTracks = ServiceLocator.musicRepository.getRandomTracks();
+    loadUser();
   }
 
-  Track _convertModelToTrack(TrackModel m) {
-    final artist = m.artist.isNotEmpty ? m.artist.split(',')[0].trim() : '';
-    final genres = m.genre.isNotEmpty
-        ? m.genre.split(',').map((g) => g.trim()).toList()
-        : <String>[];
+  Future<void> loadUser() async {
+    final user = await ServiceLocator.userRepository.me();
+    if (!mounted) return;
 
-    return Track(
-      title: m.name,
-      artist: artist.isNotEmpty ? artist : 'Unknown',
-      image: m.imageUrl,
-      genre: genres,
-      description: '',
-      duration: m.duration ?? '',
+    setState(() {
+      userId = user?.userId;
+    });
+  }
+
+  Future<void> handleSwipe(Track track, bool liked) async {
+    if (userId == null) return;
+
+    try {
+      final service = ServiceLocator.interactionService;
+
+      if (liked) {
+        await service.likeTrack(userId!, track.id);
+      } else {
+        await service.dislikeTrack(userId!, track.id);
+      }
+    } catch (e) {
+      debugPrint("Swipe save failed: $e");
+    }
+
+    if (liked) {
+      for (final genre in track.genre) {
+        genreCounter.update(genre, (v) => v + 1, ifAbsent: () => 1);
+      }
+    }
+
+    setState(() {
+      if (tracks.isNotEmpty) tracks.removeLast();
+      swipeKey = GlobalKey();
+    });
+
+    if (tracks.length <= fetchThreshold) {
+      fetchMoreTracks();
+    }
+  }
+
+  Future<void> fetchMoreTracks() async {
+    if (isFetchingMore) return;
+    isFetchingMore = true;
+
+    try {
+      final newTracks = await ServiceLocator.musicRepository.getRandomTracks();
+
+      if (!mounted) return;
+
+      setState(() {
+        tracks.addAll(TrackMapper.fromModelList(newTracks));
+      });
+    } catch (e) {
+      debugPrint("Fetch more tracks failed: $e");
+    } finally {
+      isFetchingMore = false;
+    }
+  }
+
+  Widget _buildLoading() {
+    return const Center(child: CircularProgressIndicator());
+  }
+
+  Widget _buildError() {
+    return const Center(
+      child: Text(
+        'Failed to load tracks',
+        style: TextStyle(color: Colors.white),
+      ),
     );
   }
 
@@ -76,87 +112,45 @@ class _MusicTasteScreenState extends State<MusicTasteScreen> {
     return Scaffold(
       backgroundColor: const Color(0xFF120914),
       body: SafeArea(
-        child: Column(
-          children: [
-            const MusicTasteAppBar(),
-            Expanded(
-              child: FutureBuilder<List<TrackModel>>(
-                future: futureTracks,
-                builder: (context, snapshot) {
-                  if (finished) {
-                    return MusicTasteResult(genreCounter: genreCounter);
-                  }
+        child: FutureBuilder<List<TrackModel>>(
+          future: futureTracks,
+          builder: (context, snapshot) {
+            if (snapshot.connectionState != ConnectionState.done) {
+              return _buildLoading();
+            }
 
-                  if (snapshot.connectionState == ConnectionState.waiting) {
-                    return const Center(child: CircularProgressIndicator());
-                  }
+            if (snapshot.hasError || !snapshot.hasData) {
+              return _buildError();
+            }
 
-                  if (snapshot.hasError) {
-                    return Center(
-                      child: Text(
-                        'Failed to load tracks',
-                        style: const TextStyle(color: Colors.white),
-                      ),
-                    );
-                  }
+            if (!initialized) {
+              tracks = TrackMapper.fromModelList(snapshot.data!);
+              initialized = true;
+            }
 
-                  if (!snapshot.hasData) {
-                    return const Center(
-                      child: Text(
-                        'No tracks available',
-                        style: TextStyle(color: Colors.white),
-                      ),
-                    );
-                  }
+            if (tracks.isEmpty) return _buildLoading();
 
-                  if (!initialized) {
-                    tracks = snapshot.data!
-                        .map((m) => _convertModelToTrack(m))
-                        .toList();
-                    initialized = true;
-                  }
-
-                  if (tracks.isEmpty) {
-                    return const Center(
-                      child: Text(
-                        'No tracks available',
-                        style: TextStyle(color: Colors.white),
-                      ),
-                    );
-                  }
-
-                  return Stack(
-                    alignment: Alignment.center,
-                    children: tracks.asMap().entries.map((entry) {
-                      final index = entry.key;
-                      final track = entry.value;
-
-                      if (index == tracks.length - 1) {
-                        return SwipeableCard(
-                          track: track,
-                          onLike: () {
-                            handleSwipe(track, true);
-                          },
-                          onDislike: () {
-                            handleSwipe(track, false);
-                          },
-                        );
-                      }
-
-                      return Padding(
-                        padding: const EdgeInsets.only(top: 12),
-                        child: SwipeCard(
-                          track: track,
-                          onLike: () {},
-                          onDislike: () {},
-                        ),
-                      );
-                    }).toList(),
-                  );
-                },
-              ),
-            ),
-          ],
+            return Stack(
+              clipBehavior: Clip.none,
+              children: [
+                
+                TrackCardStack(
+                  tracks: tracks,
+                  swipeKey: swipeKey,
+                  onSwipe: handleSwipe,
+                ),
+                Positioned(
+                  bottom: 30,
+                  left: 0,
+                  right: 0,
+                  child: CardActions(
+                    onLike: () => swipeKey.currentState?.swipeRight(),
+                    onDislike: () => swipeKey.currentState?.swipeLeft(),
+                  ),
+                ),
+              ],
+            );
+          },
         ),
       ),
     );

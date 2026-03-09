@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../models/track.dart';
+import '../../../models/track.dart';
 
 class CardImage extends StatelessWidget {
   final Track track;
