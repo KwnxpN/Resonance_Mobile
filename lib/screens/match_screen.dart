@@ -30,6 +30,12 @@ class _MatchScreenState extends State<MatchScreen> {
   void reload() => _loadData();
 
   Future<void> _loadData() async {
+    if (mounted) {
+      setState(() {
+        _loading = true;
+        _error = null;
+      });
+    }
     try {
       final currentUser = await ServiceLocator.userRepository.me();
       final matches = await ServiceLocator.matchRepository
@@ -78,8 +84,57 @@ class _MatchScreenState extends State<MatchScreen> {
           ? Center(child: CircularProgressIndicator(color: colors.primary))
           : _error != null
               ? Center(
-                  child: Text(_error!,
-                      style: TextStyle(color: colors.onBackground)))
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(_error!,
+                          style: TextStyle(color: colors.onBackground)),
+                      const SizedBox(height: 16),
+                      ElevatedButton.icon(
+                        onPressed: _loadData,
+                        icon: const Icon(Icons.refresh),
+                        label: const Text('Retry'),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: colors.primary,
+                          foregroundColor: colors.onPrimary,
+                        ),
+                      ),
+                    ],
+                  ),
+                )
+              : _matches.isEmpty
+                  ? Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(Icons.people_outline,
+                              size: 64, color: colors.onSurface.withAlpha(100)),
+                          const SizedBox(height: 16),
+                          Text(
+                            'No matches yet',
+                            style: AppTextStyles.textLg(context).copyWith(
+                              color: colors.onBackground,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            'Start swiping to find your vibe tribe!',
+                            style: TextStyle(color: colors.onSurface),
+                          ),
+                          const SizedBox(height: 24),
+                          ElevatedButton.icon(
+                            onPressed: _loadData,
+                            icon: const Icon(Icons.refresh),
+                            label: const Text('Refresh'),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: colors.primary,
+                              foregroundColor: colors.onPrimary,
+                            ),
+                          ),
+                        ],
+                      ),
+                    )
               : SingleChildScrollView(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
