@@ -27,6 +27,8 @@ class _MatchScreenState extends State<MatchScreen> {
     _loadData();
   }
 
+  void reload() => _loadData();
+
   Future<void> _loadData() async {
     try {
       final currentUser = await ServiceLocator.userRepository.me();
