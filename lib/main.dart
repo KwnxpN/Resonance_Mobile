@@ -1,18 +1,203 @@
 import 'package:flutter/material.dart';
+import 'dart:io';
+import 'package:flutter_project/screens/login_screen.dart';
+import 'package:flutter_project/screens/music_taste_screen.dart';
+import './core/di/service_locator.dart';
 
-void main() {
-  runApp(const MainApp());
+import './themes/app_theme.dart';
+import './themes/app_colors.dart';
+import './themes/app_text_styles.dart';
+
+import './screens/register_screen.dart';
+import './screens/home_screen.dart';
+import './screens/profile_screen.dart';
+import './screens/match_screen.dart';
+import './widgets/mini_player.dart';
+
+// Allow all certificates (for development only)
+class MyHttpOverrides extends HttpOverrides {
+  @override
+  HttpClient createHttpClient(SecurityContext? context) {
+    return super.createHttpClient(context)
+      ..badCertificateCallback =
+          (X509Certificate cert, String host, int port) => true;
+  }
 }
 
-class MainApp extends StatelessWidget {
-  const MainApp({super.key});
+void main() {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  // Enable certificate bypass for development
+  HttpOverrides.global = MyHttpOverrides();
+
+  ServiceLocator.init();
+  runApp(const MyApp());
+}
+
+class MyApp extends StatelessWidget {
+  const MyApp({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return const MaterialApp(
-      home: Scaffold(
-        body: Center(
-          child: Text('Hello World!'),
+    return MaterialApp(
+      debugShowCheckedModeBanner: false,
+      theme: AppTheme.dark(),
+      routes: {
+        '/login': (context) => const LoginScreen(),
+        '/register': (context) => const RegisterScreen(),
+        '/music_taste': (context) => const MatchScreen(),
+        '/profile': (context) => const ProfileScreen(),
+        '/home': (context) => const MainScreen(),
+      },
+      home: const AuthGate(),
+    );
+  }
+}
+
+class AuthGate extends StatefulWidget {
+  const AuthGate({super.key});
+
+  @override
+  State<AuthGate> createState() => _AuthGateState();
+}
+
+class _AuthGateState extends State<AuthGate> {
+  @override
+  void initState() {
+    super.initState();
+    _checkSession();
+  }
+
+  Future<void> _checkSession() async {
+    final loggedIn = await ServiceLocator.userRepository.checkSession();
+    if (!mounted) return;
+    if (loggedIn) {
+      Navigator.pushReplacementNamed(context, '/home');
+    } else {
+      Navigator.pushReplacementNamed(context, '/login');
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return const Scaffold(body: Center(child: CircularProgressIndicator()));
+  }
+}
+
+class MainScreen extends StatefulWidget {
+  const MainScreen({super.key});
+
+  @override
+  State<MainScreen> createState() => _MainScreenState();
+}
+
+class _MainScreenState extends State<MainScreen> {
+  int _currentIndex = 0;
+
+  final homeKey = GlobalKey<State<HomeScreen>>();
+  final matchKey = GlobalKey<State<MatchScreen>>();
+  final List<GlobalKey<NavigatorState>> _navigatorKeys = [
+    GlobalKey<NavigatorState>(),
+    GlobalKey<NavigatorState>(),
+    GlobalKey<NavigatorState>(),
+    GlobalKey<NavigatorState>(),
+  ];
+
+  late final List<Widget> _screens = [
+    HomeScreen(key: homeKey),
+    MusicTasteScreen(),
+    MatchScreen(key: matchKey),
+    ProfileScreen(),
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).extension<AppColors>()!;
+
+    return Scaffold(
+      appBar: AppBar(
+        backgroundColor: colors.background,
+        elevation: 0,
+        title: Row(
+          children: [
+            Icon(Icons.graphic_eq, color: colors.primary, size: 32),
+            const SizedBox(width: 8),
+            Text("RESONANCE", style: AppTextStyles.textXl(context)),
+          ],
+        ),
+      ),
+      body: PopScope(
+        canPop: false,
+        onPopInvokedWithResult: (didPop, _) {
+          if (!didPop) {
+            _navigatorKeys[_currentIndex].currentState?.maybePop();
+          }
+        },
+        child: Column(
+          children: [
+            Expanded(
+              child: IndexedStack(
+                index: _currentIndex,
+                children: List.generate(
+                  _screens.length,
+                  (i) => Navigator(
+                    key: _navigatorKeys[i],
+                    onGenerateRoute: (_) =>
+                        MaterialPageRoute(builder: (_) => _screens[i]),
+                  ),
+                ),
+              ),
+            ),
+            const MiniPlayer(),
+          ],
+        ),
+      ),
+      bottomNavigationBar: Container(
+        decoration: BoxDecoration(
+          color: colors.background,
+          border: Border(top: BorderSide(color: colors.border, width: 1.5)),
+        ),
+
+        child: SafeArea(
+          child: SizedBox(
+            height: 80,
+            child: BottomNavigationBar(
+              currentIndex: _currentIndex,
+              onTap: (index) {
+                if (index == 0) {
+                  (homeKey.currentState as dynamic)?.fetchRecommendedPlaylist();
+                }
+                if (index == 2) {
+                  (matchKey.currentState as dynamic)?.reload();
+                }
+
+                setState(() => _currentIndex = index);
+              },
+
+              type: BottomNavigationBarType.fixed,
+              backgroundColor: colors.background,
+              selectedItemColor: colors.primary,
+              unselectedItemColor: colors.onSurface.withValues(alpha: 0.6),
+              iconSize: 28,
+              elevation: 0,
+
+              items: const [
+                BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
+                BottomNavigationBarItem(
+                  icon: Icon(Icons.library_music),
+                  label: 'Swipes',
+                ),
+                BottomNavigationBarItem(
+                  icon: Icon(Icons.group),
+                  label: 'Matches',
+                ),
+                BottomNavigationBarItem(
+                  icon: Icon(Icons.person),
+                  label: 'Profile',
+                ),
+              ],
+            ),
+          ),
         ),
       ),
     );

@@ -9,6 +9,17 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  
+  audio_video_progress_bar: ^2.0.3
+  youtube_explode_dart: ^2.3.4
+  dio: ^5.9.0
+  just_audio: ^0.9.36
+  http: ^1.2.0
+  shared_preferences: ^2.5.4
+  crypto: ^3.0.7
+  flutter_secure_storage: ^10.0.0
+  cached_network_image: ^3.4.1
+  web_socket_channel: ^3.0.3
 
 dev_dependencies:
   flutter_test:
