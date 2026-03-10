@@ -42,8 +42,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Future<PlaylistModel> _fetchRecommendedPlaylist() async {
     final user = await _userFuture;
-    if (user == null)
-      return PlaylistModel(id: '', userId: '', name: '', tracks: []);
+    if (user == null) return PlaylistModel(id: '', userId: '', name: '', tracks: []);
     return ServiceLocator.playlistRepository.getRecommendedPlaylist(
       user.userId,
     );
