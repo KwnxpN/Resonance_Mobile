@@ -95,6 +95,7 @@ class _MainScreenState extends State<MainScreen> {
   int _currentIndex = 0;
 
   final homeKey = GlobalKey<State<HomeScreen>>();
+  final matchKey = GlobalKey<State<MatchScreen>>();
   final List<GlobalKey<NavigatorState>> _navigatorKeys = [
     GlobalKey<NavigatorState>(),
     GlobalKey<NavigatorState>(),
@@ -105,7 +106,7 @@ class _MainScreenState extends State<MainScreen> {
   late final List<Widget> _screens = [
     HomeScreen(key: homeKey),
     MusicTasteScreen(),
-    MatchScreen(),
+    MatchScreen(key: matchKey),
     ProfileScreen(),
   ];
 
@@ -165,6 +166,9 @@ class _MainScreenState extends State<MainScreen> {
               onTap: (index) {
                 if (index == 0) {
                   (homeKey.currentState as dynamic)?.fetchRecommendedPlaylist();
+                }
+                if (index == 2) {
+                  (matchKey.currentState as dynamic)?.reload();
                 }
 
                 setState(() => _currentIndex = index);
